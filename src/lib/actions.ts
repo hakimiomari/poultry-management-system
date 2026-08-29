@@ -139,3 +139,63 @@ export async function deleteMovementAction(id: string): Promise<ActionState> {
   await audit(user.id, "bird_movements", id, "DELETE", old, null);
   refreshAll(old.flockId); return { ok: true };
 }
+
+/* ── Profile & users ───────────────────────────────────────────── */
+import bcrypt from "bcryptjs";
+import { passwordSchema, profileSchema, userAdminSchema } from "./validation";
+import { refreshSession } from "./auth";
+
+export async function updateProfileAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const p = profileSchema.safeParse(formToObject(fd));
+  if (!p.success) return { error: issues(p.error) };
+  const dup = await prisma.user.findUnique({ where: { phone: p.data.phone } });
+  if (dup && dup.id !== user.id) return { error: "Phone number already in use" };
+  const old = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+  const updated = await prisma.user.update({ where: { id: user.id }, data: p.data });
+  await audit(user.id, "users", user.id, "UPDATE", { fullName: old.fullName, phone: old.phone, language: old.language }, p.data);
+  await refreshSession(updated.id);
+  revalidatePath("/", "layout"); return { ok: true };
+}
+
+export async function changePasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const p = passwordSchema.safeParse(formToObject(fd));
+  if (!p.success) return { error: issues(p.error) };
+  const row = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+  if (!(await bcrypt.compare(p.data.currentPassword, row.passwordHash))) return { error: "Current password is incorrect" };
+  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(p.data.newPassword, 10) } });
+  await audit(user.id, "users", user.id, "UPDATE", null, { passwordChanged: true });
+  return { ok: true };
+}
+
+export async function saveUserAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const admin = await requireUser("admin");
+  const id = (fd.get("id") as string) || null;
+  const p = userAdminSchema.safeParse({ ...formToObject(fd), isActive: fd.get("isActive") === "on" });
+  if (!p.success) return { error: issues(p.error) };
+  const { password, ...data } = p.data;
+  const dup = await prisma.user.findUnique({ where: { phone: data.phone } });
+  if (dup && dup.id !== id) return { error: "Phone number already in use" };
+  if (id === admin.id && (data.role !== "OWNER" || !data.isActive)) return { error: "You cannot demote or deactivate your own account" };
+  if (id) {
+    const old = await prisma.user.findUniqueOrThrow({ where: { id } });
+    await prisma.user.update({ where: { id }, data: { ...data, ...(password ? { passwordHash: await bcrypt.hash(password, 10) } : {}) } });
+    await audit(admin.id, "users", id, "UPDATE", { ...old, passwordHash: undefined }, { ...data, passwordReset: !!password });
+    if (id === admin.id) await refreshSession(id);
+  } else {
+    if (!password) return { error: "Password is required for a new user" };
+    const user = await prisma.user.create({ data: { ...data, passwordHash: await bcrypt.hash(password, 10) } });
+    await audit(admin.id, "users", user.id, "CREATE", null, data);
+  }
+  revalidatePath("/users"); return { ok: true };
+}
+
+export async function toggleUserActiveAction(id: string): Promise<ActionState> {
+  const admin = await requireUser("admin");
+  if (id === admin.id) return { error: "You cannot deactivate your own account" };
+  const old = await prisma.user.findUniqueOrThrow({ where: { id } });
+  const user = await prisma.user.update({ where: { id }, data: { isActive: !old.isActive } });
+  await audit(admin.id, "users", id, "UPDATE", { isActive: old.isActive }, { isActive: user.isActive });
+  revalidatePath("/users"); return { ok: true };
+}
