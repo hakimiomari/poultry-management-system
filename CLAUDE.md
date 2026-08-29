@@ -3,7 +3,9 @@
 Source-of-truth spec: `SPEC.md` (v2.0). Read it before changing data models, formulas, or alerts.
 
 ## Stack
-- Next.js 15 (App Router, `src/app`), TypeScript, Tailwind v4
+- Next.js 15 (App Router, `src/app`), TypeScript, Tailwind v4, **shadcn/ui v4 (Base UI)** in `src/components/ui/` — add more with `npx shadcn add <name>`
+- Create/edit/delete happen in dialogs: `src/components/FormDialog.tsx` (server-action form, keeps input on error) and `ConfirmButton.tsx`; entity forms in `src/components/forms/`. Actions return `{ ok }` / `{ error }` (no redirects except login).
+- Palette lives as shadcn CSS variables in `src/app/globals.css` (light + dark). Use `Kpi`, `ToneBadge`, `PageHeader`, `AlertBanner` from `src/components/pms.tsx`.
 - Prisma 6 + SQLite (`prisma/schema.prisma`, `DATABASE_URL` in `.env`). Switch to PostgreSQL by changing `provider` and the URL.
 - Auth: cookie session (jose JWT) — `src/lib/auth.ts`. Roles: OWNER, FARM_MANAGER, WORKER, VETERINARIAN, ACCOUNTANT.
 - Validation: zod schemas in `src/lib/validation.ts`. Enums live in `src/lib/enums.ts` (SQLite has no native enums).

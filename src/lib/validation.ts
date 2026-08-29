@@ -51,3 +51,22 @@ export function formToObject(fd: FormData): Record<string, unknown> {
   fd.forEach((v, k) => { o[k] = v === "" ? undefined : v; });
   return o;
 }
+
+export const profileSchema = z.object({
+  fullName: z.string().min(2).max(80),
+  phone: z.string().min(5).max(20).regex(/^[0-9+]+$/, "Digits only"),
+  language: z.enum(["EN", "FA_DARI", "PS_PASHTO"]),
+});
+export const passwordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6, "At least 6 characters"),
+  confirmPassword: z.string(),
+}).refine((d) => d.newPassword === d.confirmPassword, { message: "Passwords do not match", path: ["confirmPassword"] });
+export const userAdminSchema = z.object({
+  fullName: z.string().min(2).max(80),
+  phone: z.string().min(5).max(20).regex(/^[0-9+]+$/, "Digits only"),
+  role: z.enum(["OWNER", "FARM_MANAGER", "WORKER", "VETERINARIAN", "ACCOUNTANT"]),
+  language: z.enum(["EN", "FA_DARI", "PS_PASHTO"]).default("EN"),
+  password: z.string().min(6).optional(), // required on create, optional (reset) on edit
+  isActive: z.coerce.boolean().default(true),
+});

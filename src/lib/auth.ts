@@ -20,6 +20,14 @@ export async function login(phone: string, password: string): Promise<SessionUse
   return su;
 }
 
+/** Re-issue the session cookie from the DB row (after profile edits). */
+export async function refreshSession(userId: string) {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const su: SessionUser = { id: user.id, fullName: user.fullName, role: user.role as Role, language: user.language };
+  const token = await new SignJWT({ ...su }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("7d").sign(secret());
+  (await cookies()).set(COOKIE, token, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 7 * 86400 });
+}
+
 export async function logout() { (await cookies()).delete(COOKIE); }
 
 export async function getSession(): Promise<SessionUser | null> {
@@ -28,10 +36,10 @@ export async function getSession(): Promise<SessionUser | null> {
   try { const { payload } = await jwtVerify(token, secret()); return payload as unknown as SessionUser; } catch { return null; }
 }
 
-/** Server-side guard: redirects to /login, or throws if the role lacks the permission. */
+/** Server-side guard: redirects to /login when signed out, or to /dashboard when the role lacks the permission. */
 export async function requireUser(permission?: string): Promise<SessionUser> {
   const u = await getSession();
   if (!u) redirect("/login");
-  if (permission && !can(u.role, permission)) throw new Error(`Forbidden: ${u.role} lacks ${permission}`);
+  if (permission && !can(u.role, permission)) redirect("/dashboard?forbidden=1");
   return u;
 }

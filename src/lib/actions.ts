@@ -1,5 +1,6 @@
 "use server";
 // All writes: validate (zod) → business rules (domain) → persist → audit → revalidate.
+// Actions return { ok } / { error } so dialogs can close in place; only login redirects.
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "./db";
@@ -10,7 +11,9 @@ import { validateMovement, validateShedCapacity, currentQuantity } from "./domai
 import { shedOccupancy } from "./services/flocks";
 import { toDate } from "./format";
 
-export type ActionState = { error?: string } | undefined;
+export type ActionState = { ok?: boolean; error?: string } | undefined;
+const issues = (e: { issues: { path: PropertyKey[]; message: string }[] }) => e.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+const refreshAll = (flockId?: string) => { for (const p of ["/dashboard", "/flocks", "/sheds", "/daily-logs", "/movements"]) revalidatePath(p); if (flockId) revalidatePath(`/flocks/${flockId}`); };
 
 export async function loginAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const p = loginSchema.safeParse(formToObject(fd));
@@ -21,44 +24,70 @@ export async function loginAction(_: ActionState, fd: FormData): Promise<ActionS
 }
 export async function logoutAction() { await doLogout(); redirect("/login"); }
 
-export async function createShedAction(_: ActionState, fd: FormData): Promise<ActionState> {
+/* ── Sheds ─────────────────────────────────────────────────────── */
+export async function saveShedAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requireUser("records");
+  const id = (fd.get("id") as string) || null;
   const p = shedSchema.safeParse({ ...formToObject(fd), hasSensors: fd.get("hasSensors") === "on" });
-  if (!p.success) return { error: p.error.issues.map((i) => i.message).join(", ") };
-  if (await prisma.shed.findUnique({ where: { shedName: p.data.shedName } })) return { error: "Shed name already exists" };
-  const shed = await prisma.shed.create({ data: p.data });
-  await audit(user.id, "sheds", shed.id, "CREATE", null, shed);
-  revalidatePath("/sheds"); redirect("/sheds");
+  if (!p.success) return { error: issues(p.error) };
+  const dup = await prisma.shed.findUnique({ where: { shedName: p.data.shedName } });
+  if (dup && dup.id !== id) return { error: "Shed name already exists" };
+  if (id) {
+    const old = await prisma.shed.findUniqueOrThrow({ where: { id } });
+    const housed = await shedOccupancy(id);
+    if (p.data.capacity < housed) return { error: `Capacity cannot be below the ${housed} birds currently housed` };
+    const shed = await prisma.shed.update({ where: { id }, data: p.data });
+    await audit(user.id, "sheds", id, "UPDATE", old, shed);
+  } else {
+    const shed = await prisma.shed.create({ data: p.data });
+    await audit(user.id, "sheds", shed.id, "CREATE", null, shed);
+  }
+  refreshAll(); return { ok: true };
+}
+export async function deleteShedAction(id: string): Promise<ActionState> {
+  const user = await requireUser("records");
+  if (await prisma.flock.count({ where: { shedId: id } })) return { error: "Shed has flocks assigned; cannot delete" };
+  const old = await prisma.shed.delete({ where: { id } });
+  await audit(user.id, "sheds", id, "DELETE", old, null);
+  refreshAll(); return { ok: true };
 }
 
-export async function createFlockAction(_: ActionState, fd: FormData): Promise<ActionState> {
+/* ── Flocks ────────────────────────────────────────────────────── */
+export async function saveFlockAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requireUser("records");
+  const id = (fd.get("id") as string) || null;
   const p = flockSchema.safeParse(formToObject(fd));
-  if (!p.success) return { error: p.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ") };
+  if (!p.success) return { error: issues(p.error) };
   const shed = await prisma.shed.findUnique({ where: { id: p.data.shedId } });
   if (!shed) return { error: "Shed not found" };
-  const cap = validateShedCapacity(shed.capacity, await shedOccupancy(shed.id), p.data.initialQuantity);
+  const dup = await prisma.flock.findUnique({ where: { flockName: p.data.flockName } });
+  if (dup && dup.id !== id) return { error: "Flock name already exists" };
+  const existing = id ? await prisma.flock.findUniqueOrThrow({ where: { id }, include: { birdMovements: true } }) : null;
+  const ownBirds = existing && existing.shedId === shed.id ? currentQuantity(existing.initialQuantity, existing.birdMovements) : 0;
+  const cap = validateShedCapacity(shed.capacity, (await shedOccupancy(shed.id)) - ownBirds, existing ? p.data.initialQuantity - (existing.initialQuantity - ownBirds) : p.data.initialQuantity);
   if (!cap.ok) return { error: cap.error };
-  if (await prisma.flock.findUnique({ where: { flockName: p.data.flockName } })) return { error: "Flock name already exists" };
-  const flock = await prisma.flock.create({ data: { ...p.data, intakeDate: toDate(p.data.intakeDate) } });
+  if (existing && p.data.initialQuantity - (existing.initialQuantity - ownBirds) < 0) return { error: "Initial quantity is below birds already removed" };
+  const data = { ...p.data, intakeDate: toDate(p.data.intakeDate) };
+  const flock = existing ? await prisma.flock.update({ where: { id: id! }, data }) : await prisma.flock.create({ data });
   await prisma.shed.update({ where: { id: shed.id }, data: { status: "OCCUPIED" } });
-  await audit(user.id, "flocks", flock.id, "CREATE", null, flock);
-  revalidatePath("/flocks"); revalidatePath("/dashboard"); redirect(`/flocks/${flock.id}`);
+  if (existing && existing.shedId !== shed.id && (await shedOccupancy(existing.shedId)) === 0) await prisma.shed.update({ where: { id: existing.shedId }, data: { status: "EMPTY" } });
+  await audit(user.id, "flocks", flock.id, existing ? "UPDATE" : "CREATE", existing, flock);
+  refreshAll(flock.id); return { ok: true };
 }
-
 export async function closeFlockAction(flockId: string) {
   const user = await requireUser("records");
   const old = await prisma.flock.findUniqueOrThrow({ where: { id: flockId } });
   const flock = await prisma.flock.update({ where: { id: flockId }, data: { status: "COMPLETED", closedAt: new Date() } });
   if ((await shedOccupancy(flock.shedId)) === 0) await prisma.shed.update({ where: { id: flock.shedId }, data: { status: "CLEANING" } });
   await audit(user.id, "flocks", flockId, "UPDATE", old, flock);
-  revalidatePath("/flocks"); revalidatePath("/dashboard"); revalidatePath(`/flocks/${flockId}`);
+  refreshAll(flockId);
 }
 
-export async function createDailyLogAction(_: ActionState, fd: FormData): Promise<ActionState> {
+/* ── Daily logs ────────────────────────────────────────────────── */
+export async function saveDailyLogAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requireUser("records");
   const p = dailyLogSchema.safeParse(formToObject(fd));
-  if (!p.success) return { error: p.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ") };
+  if (!p.success) return { error: issues(p.error) };
   const { mortality, date, ...data } = p.data;
   const flock = await prisma.flock.findUnique({ where: { id: data.flockId }, include: { birdMovements: true } });
   if (!flock || flock.status !== "ACTIVE") return { error: "Flock not found or not active" };
@@ -74,32 +103,99 @@ export async function createDailyLogAction(_: ActionState, fd: FormData): Promis
     const mv = await prisma.birdMovement.create({ data: { flockId: data.flockId, date: toDate(date), movementType: "MORTALITY", quantity: mortality, cause: "UNKNOWN", notes: "From daily log" } });
     await audit(user.id, "bird_movements", mv.id, "CREATE", null, mv);
   }
-  revalidatePath("/daily-logs"); revalidatePath("/dashboard"); revalidatePath(`/flocks/${data.flockId}`);
-  redirect(`/flocks/${data.flockId}`);
+  refreshAll(data.flockId); return { ok: true };
+}
+export async function deleteDailyLogAction(id: string): Promise<ActionState> {
+  const user = await requireUser("records");
+  const old = await prisma.dailyLog.delete({ where: { id } });
+  await audit(user.id, "daily_logs", id, "DELETE", old, null);
+  refreshAll(old.flockId); return { ok: true };
 }
 
-export async function createMovementAction(_: ActionState, fd: FormData): Promise<ActionState> {
+/* ── Bird movements ────────────────────────────────────────────── */
+export async function saveMovementAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requireUser("records");
+  const id = (fd.get("id") as string) || null;
   const p = birdMovementSchema.safeParse(formToObject(fd));
-  if (!p.success) return { error: p.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ") };
+  if (!p.success) return { error: issues(p.error) };
   const d = p.data;
   const flock = await prisma.flock.findUnique({ where: { id: d.flockId }, include: { birdMovements: true } });
   if (!flock || flock.status !== "ACTIVE") return { error: "Flock not found or not active" };
   if (toDate(d.date) < flock.intakeDate) return { error: "Date is before flock intake date" };
-  const v = validateMovement(flock.initialQuantity, flock.birdMovements, d.quantity);
+  const others = flock.birdMovements.filter((m) => m.id !== id);
+  const v = validateMovement(flock.initialQuantity, others, d.quantity);
   if (!v.ok) return { error: v.error };
   if (d.movementType === "SALE" && flock.flockType === "BROILER" && !d.averageWeightG) return { error: "Average weight is required for broiler sales" };
-  const mv = await prisma.birdMovement.create({ data: { ...d, date: toDate(d.date) } });
-  await audit(user.id, "bird_movements", mv.id, "CREATE", null, mv);
-  if (currentQuantity(flock.initialQuantity, [...flock.birdMovements, mv]) === 0) await closeFlockAction(flock.id);
-  revalidatePath("/movements"); revalidatePath("/dashboard"); revalidatePath(`/flocks/${d.flockId}`);
-  redirect(`/flocks/${d.flockId}`);
+  const data = { ...d, date: toDate(d.date), cause: d.cause ?? null, averageWeightG: d.averageWeightG ?? null, notes: d.notes ?? null };
+  const old = id ? await prisma.birdMovement.findUniqueOrThrow({ where: { id } }) : null;
+  const mv = old ? await prisma.birdMovement.update({ where: { id: id! }, data }) : await prisma.birdMovement.create({ data });
+  await audit(user.id, "bird_movements", mv.id, old ? "UPDATE" : "CREATE", old, mv);
+  if (currentQuantity(flock.initialQuantity, [...others, mv]) === 0) await closeFlockAction(flock.id);
+  refreshAll(d.flockId); return { ok: true };
+}
+export async function deleteMovementAction(id: string): Promise<ActionState> {
+  const user = await requireUser("records");
+  const old = await prisma.birdMovement.delete({ where: { id } });
+  await audit(user.id, "bird_movements", id, "DELETE", old, null);
+  refreshAll(old.flockId); return { ok: true };
 }
 
-export async function deleteMovementAction(id: string) {
-  const user = await requireUser("records");
-  const old = await prisma.birdMovement.findUniqueOrThrow({ where: { id } });
-  await prisma.birdMovement.delete({ where: { id } });
-  await audit(user.id, "bird_movements", id, "DELETE", old, null);
-  revalidatePath("/movements"); revalidatePath("/dashboard"); revalidatePath(`/flocks/${old.flockId}`);
+/* ── Profile & users ───────────────────────────────────────────── */
+import bcrypt from "bcryptjs";
+import { passwordSchema, profileSchema, userAdminSchema } from "./validation";
+import { refreshSession } from "./auth";
+
+export async function updateProfileAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const p = profileSchema.safeParse(formToObject(fd));
+  if (!p.success) return { error: issues(p.error) };
+  const dup = await prisma.user.findUnique({ where: { phone: p.data.phone } });
+  if (dup && dup.id !== user.id) return { error: "Phone number already in use" };
+  const old = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+  const updated = await prisma.user.update({ where: { id: user.id }, data: p.data });
+  await audit(user.id, "users", user.id, "UPDATE", { fullName: old.fullName, phone: old.phone, language: old.language }, p.data);
+  await refreshSession(updated.id);
+  revalidatePath("/", "layout"); return { ok: true };
+}
+
+export async function changePasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const p = passwordSchema.safeParse(formToObject(fd));
+  if (!p.success) return { error: issues(p.error) };
+  const row = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+  if (!(await bcrypt.compare(p.data.currentPassword, row.passwordHash))) return { error: "Current password is incorrect" };
+  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(p.data.newPassword, 10) } });
+  await audit(user.id, "users", user.id, "UPDATE", null, { passwordChanged: true });
+  return { ok: true };
+}
+
+export async function saveUserAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const admin = await requireUser("admin");
+  const id = (fd.get("id") as string) || null;
+  const p = userAdminSchema.safeParse({ ...formToObject(fd), isActive: fd.get("isActive") === "on" });
+  if (!p.success) return { error: issues(p.error) };
+  const { password, ...data } = p.data;
+  const dup = await prisma.user.findUnique({ where: { phone: data.phone } });
+  if (dup && dup.id !== id) return { error: "Phone number already in use" };
+  if (id === admin.id && (data.role !== "OWNER" || !data.isActive)) return { error: "You cannot demote or deactivate your own account" };
+  if (id) {
+    const old = await prisma.user.findUniqueOrThrow({ where: { id } });
+    await prisma.user.update({ where: { id }, data: { ...data, ...(password ? { passwordHash: await bcrypt.hash(password, 10) } : {}) } });
+    await audit(admin.id, "users", id, "UPDATE", { ...old, passwordHash: undefined }, { ...data, passwordReset: !!password });
+    if (id === admin.id) await refreshSession(id);
+  } else {
+    if (!password) return { error: "Password is required for a new user" };
+    const user = await prisma.user.create({ data: { ...data, passwordHash: await bcrypt.hash(password, 10) } });
+    await audit(admin.id, "users", user.id, "CREATE", null, data);
+  }
+  revalidatePath("/users"); return { ok: true };
+}
+
+export async function toggleUserActiveAction(id: string): Promise<ActionState> {
+  const admin = await requireUser("admin");
+  if (id === admin.id) return { error: "You cannot deactivate your own account" };
+  const old = await prisma.user.findUniqueOrThrow({ where: { id } });
+  const user = await prisma.user.update({ where: { id }, data: { isActive: !old.isActive } });
+  await audit(admin.id, "users", id, "UPDATE", { isActive: old.isActive }, { isActive: user.isActive });
+  revalidatePath("/users"); return { ok: true };
 }

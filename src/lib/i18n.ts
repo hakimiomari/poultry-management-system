@@ -5,7 +5,7 @@ export type Lang = (typeof LANGUAGES)[number];
 const en = {
   "app.title": "Poultry Management System",
   "nav.dashboard": "Dashboard", "nav.flocks": "Flocks", "nav.sheds": "Sheds",
-  "nav.dailyLogs": "Daily Logs", "nav.movements": "Bird Movements", "nav.logout": "Logout",
+  "nav.dailyLogs": "Daily Logs", "nav.movements": "Bird Movements", "nav.logout": "Logout", "nav.users": "Users", "nav.profile": "Profile",
   "field.date": "Date", "field.quantity": "Quantity", "field.notes": "Notes",
   "field.feedKg": "Feed consumed (kg)", "field.waterL": "Water consumed (L)",
   "field.eggs": "Eggs collected", "field.eggsBroken": "Eggs broken",
