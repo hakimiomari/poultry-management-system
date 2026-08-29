@@ -1,13 +1,13 @@
 import { prisma } from "@/lib/db";
 import { ActionForm } from "@/components/Form";
 import { createDailyLogAction } from "@/lib/actions";
-import { Field, inputCls, PageHeader } from "@/components/ui";
+import { Field, inputCls, bigNumCls, PageHeader } from "@/components/ui";
 import { todayStr } from "@/lib/format";
 
 export default async function NewDailyLog({ searchParams }: { searchParams: Promise<{ flockId?: string }> }) {
   const { flockId } = await searchParams;
   const flocks = await prisma.flock.findMany({ where: { status: "ACTIVE" }, orderBy: { flockName: "asc" } });
-  const num = "text-2xl font-semibold text-center " + inputCls;
+  const num = bigNumCls;
   return (
     <div className="max-w-lg">
       <PageHeader title="Daily log" />
@@ -24,7 +24,7 @@ export default async function NewDailyLog({ searchParams }: { searchParams: Prom
           <Field label="🥚 Eggs broken"><input name="eggsBroken" type="number" inputMode="numeric" min={0} defaultValue={0} className={num} /></Field>
         </div>
         <Field label="Notes"><textarea name="notes" rows={2} className={inputCls} /></Field>
-        <p className="text-xs text-gray-500">Saving for an existing date updates that day&apos;s log. Deaths create a MORTALITY bird movement.</p>
+        <p className="text-xs text-muted">Saving for an existing date updates that day&apos;s log. Deaths create a MORTALITY bird movement.</p>
       </ActionForm>
     </div>
   );

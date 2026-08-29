@@ -1,1 +1,54 @@
 @import "tailwindcss";
+
+/* ── PMS design tokens ─────────────────────────────────────────────
+   Warm earth palette: barn green primary, straw accent, soil neutrals.
+   Light is default; dark follows the OS preference.                */
+:root {
+  --bg: #f6f4ee;          /* parchment ground */
+  --surface: #ffffff;
+  --surface-2: #fbfaf6;
+  --border: #e6e1d6;
+  --text: #1f2a22;
+  --muted: #6b7265;
+  --primary: #2f6b3a;     /* barn green */
+  --primary-hover: #25562e;
+  --primary-soft: #e4efe5;
+  --accent: #d9a441;      /* straw */
+  --accent-soft: #fbf1da;
+  --danger: #b83a2b;
+  --danger-soft: #fbe6e2;
+  --info: #2b5f9e;
+  --info-soft: #e3ecf7;
+  --shadow: 0 1px 2px rgba(31,42,34,.06), 0 4px 16px rgba(31,42,34,.05);
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131714; --surface: #1b211c; --surface-2: #202721; --border: #2e372f;
+    --text: #ecefe9; --muted: #98a094;
+    --primary: #5fae6d; --primary-hover: #74c182; --primary-soft: #1f3324;
+    --accent: #e4b658; --accent-soft: #3a2f16;
+    --danger: #e26a5b; --danger-soft: #3d1f1b;
+    --info: #6fa3e6; --info-soft: #1c2b3f;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+  }
+}
+@theme inline {
+  --color-bg: var(--bg); --color-surface: var(--surface); --color-surface-2: var(--surface-2);
+  --color-border: var(--border); --color-text: var(--text); --color-muted: var(--muted);
+  --color-primary: var(--primary); --color-primary-hover: var(--primary-hover); --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent); --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger); --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info); --color-info-soft: var(--info-soft);
+  --font-sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Vazirmatn", "Noto Sans Arabic", sans-serif;
+}
+html { color-scheme: light dark; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-sans); overflow-x: hidden; }
+.grid > * { min-width: 0; }
+.recharts-responsive-container { min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.tabular { font-variant-numeric: tabular-nums; }
+.nav-link { display:flex; align-items:center; gap:.6rem; padding:.6rem .8rem; border-radius:10px; color:var(--muted); font-weight:500; }
+.nav-link:hover { background: var(--surface-2); color: var(--text); }
+.nav-link[data-active="true"] { background: var(--primary-soft); color: var(--primary); }
+input, select, textarea { background: var(--surface); color: var(--text); }

@@ -10,17 +10,17 @@ export default async function FlocksPage() {
   const flocks = await prisma.flock.findMany({ include: { shed: true, birdMovements: true }, orderBy: [{ status: "asc" }, { intakeDate: "desc" }] });
   return (
     <div>
-      <PageHeader title="Flocks" action={{ href: "/flocks/new", label: "+ New flock" }} />
+      <PageHeader title="Flocks" subtitle={`${flocks.filter((f) => f.status === "ACTIVE").length} active`} action={{ href: "/flocks/new", label: "+ New flock" }} />
       <Table head={["Flock", "Type / breed", "Shed", "Intake", "Age", "Population", "Mortality", "Status"]}>
-        {flocks.map((f) => (
+        {flocks.map((f) => { const m = cumulativeMortalityPct(f.initialQuantity, f.birdMovements); return (
           <tr key={f.id}>
-            <td className="px-3 py-2"><Link href={`/flocks/${f.id}`} className="font-medium text-green-700 hover:underline">{f.flockName}</Link></td>
-            <td className="px-3 py-2">{enumLabel(f.flockType)} · {f.breed}</td><td className="px-3 py-2">{f.shed.shedName}</td>
-            <td className="px-3 py-2">{fmtDate(f.intakeDate)}</td><td className="px-3 py-2">{ageInDays(f.intakeDate, f.closedAt ?? new Date())} d</td>
-            <td className="px-3 py-2">{fmtNum(currentQuantity(f.initialQuantity, f.birdMovements))} / {fmtNum(f.initialQuantity)}</td>
-            <td className="px-3 py-2">{cumulativeMortalityPct(f.initialQuantity, f.birdMovements).toFixed(2)}%</td>
-            <td className="px-3 py-2"><Badge tone={f.status === "ACTIVE" ? "green" : "gray"}>{enumLabel(f.status)}</Badge></td>
-          </tr>))}
+            <td><Link href={`/flocks/${f.id}`} className="font-semibold text-primary hover:underline">{f.flockName}</Link></td>
+            <td><Badge tone={f.flockType === "BROILER" ? "amber" : "blue"}>{enumLabel(f.flockType)}</Badge> <span className="text-muted">{f.breed}</span></td><td>{f.shed.shedName}</td>
+            <td className="tabular">{fmtDate(f.intakeDate)}</td><td className="tabular">{ageInDays(f.intakeDate, f.closedAt ?? new Date())} d</td>
+            <td className="tabular">{fmtNum(currentQuantity(f.initialQuantity, f.birdMovements))} <span className="text-muted">/ {fmtNum(f.initialQuantity)}</span></td>
+            <td className={`tabular ${m > 5 ? "font-semibold text-danger" : ""}`}>{m.toFixed(2)}%</td>
+            <td><Badge tone={f.status === "ACTIVE" ? "green" : "gray"}>{enumLabel(f.status)}</Badge></td>
+          </tr>); })}
       </Table>
     </div>
   );
