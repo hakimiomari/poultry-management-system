@@ -1,0 +1,182 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="From egg to result — the growth journey of a flock, counted at every step">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#16231a"/><stop offset="100%" stop-color="#0f1a13"/></linearGradient>
+    <linearGradient id="track" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#d9a441"/><stop offset="100%" stop-color="#5fae6d"/></linearGradient>
+    <radialGradient id="eggG" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#fff8e6"/><stop offset="100%" stop-color="#d8c39a"/></radialGradient>
+    <radialGradient id="chickG" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#ffe680"/><stop offset="100%" stop-color="#e6b422"/></radialGradient>
+    <radialGradient id="henG" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#f3e7d3"/><stop offset="100%" stop-color="#c9a97a"/></radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#5fae6d" stop-opacity="0.30"/><stop offset="100%" stop-color="#5fae6d" stop-opacity="0"/></radialGradient>
+    <clipPath id="round"><rect width="1200" height="420" rx="24"/></clipPath>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>
+
+  <!-- master clock: everything restarts when this repeats -->
+  <rect width="0" height="0"><animate id="cycle" attributeName="x" from="0" to="0" dur="14s" repeatCount="indefinite"/></rect>
+
+  <g clip-path="url(#round)" font-family="ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+    <rect width="1200" height="420" fill="url(#bg)"/>
+    <circle cx="600" cy="200" r="420" fill="url(#glow)"/>
+    <g stroke="#ffffff" stroke-opacity="0.035"><path d="M0 105H1200M0 210H1200M0 315H1200"/><path d="M240 0V420M480 0V420M720 0V420M960 0V420"/></g>
+
+    <!-- heading -->
+    <text x="600" y="52" text-anchor="middle" font-size="26" font-weight="700" fill="#ecefe9">From egg to result — counted at every step</text>
+    <text x="600" y="78" text-anchor="middle" font-size="14" fill="#98a094">population = initial − Σ movements · every day recorded · every bird accounted for</text>
+
+    <!-- timeline track -->
+    <line x1="120" y1="250" x2="1080" y2="250" stroke="#ffffff" stroke-opacity="0.10" stroke-width="6" stroke-linecap="round"/>
+    <line x1="120" y1="250" x2="1080" y2="250" stroke="url(#track)" stroke-width="6" stroke-linecap="round" stroke-dasharray="960" stroke-dashoffset="960">
+      <animate attributeName="stroke-dashoffset" values="960;0" dur="8s" begin="cycle.begin+0.4s" fill="freeze"/>
+    </line>
+    <!-- moving marker along the track -->
+    <circle r="9" fill="#ecefe9" stroke="#2f6b3a" stroke-width="3">
+      <animate attributeName="cx" values="120;1080" dur="8s" begin="cycle.begin+0.4s" fill="freeze"/>
+      <animate attributeName="cy" values="250" dur="8s" begin="cycle.begin+0.4s" fill="freeze"/>
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.03;0.97;1" dur="8.4s" begin="cycle.begin+0.3s" fill="freeze"/>
+    </circle>
+
+    <!-- ============ STAGE 1: EGG (day 0) ============ -->
+    <g transform="translate(120 250)" opacity="0">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="cycle.begin+0.4s" fill="freeze"/>
+      <circle r="46" fill="#1b211c" stroke="#ffffff" stroke-opacity="0.08"/>
+      <g transform="translate(0 -4)">
+        <ellipse rx="19" ry="25" fill="url(#eggG)">
+          <animateTransform attributeName="transform" type="rotate" values="0;-6;0;6;0" dur="1.2s" begin="cycle.begin+0.9s" repeatCount="2"/>
+        </ellipse>
+      </g>
+      <text y="72" text-anchor="middle" font-size="13" font-weight="600" fill="#ecefe9">Egg</text>
+      <text y="90" text-anchor="middle" font-size="11" fill="#98a094">day 0 · 60 g</text>
+    </g>
+
+    <!-- ============ STAGE 2: HATCH (day 1) ============ -->
+    <g transform="translate(360 250)" opacity="0">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="cycle.begin+2.4s" fill="freeze"/>
+      <circle r="46" fill="#1b211c" stroke="#ffffff" stroke-opacity="0.08"/>
+      <!-- bottom shell -->
+      <path d="M-20 6 L-16 -2 L-10 6 L-4 -2 L2 6 L8 -2 L14 6 L20 -2 L20 20 Q0 34 -20 20 Z" fill="url(#eggG)"/>
+      <!-- chick head peeking, rises up -->
+      <g>
+        <animateTransform attributeName="transform" type="translate" values="0 18;0 0" dur="0.8s" begin="cycle.begin+2.8s" fill="freeze"/>
+        <circle cy="-8" r="15" fill="url(#chickG)"/>
+        <circle cx="-5" cy="-11" r="2.2" fill="#1f2a22"/>
+        <path d="M6 -8 L14 -5 L6 -2 Z" fill="#e8843a"/>
+      </g>
+      <!-- top shell cap flying off -->
+      <path d="M-14 -28 Q0 -44 14 -28 L10 -22 L4 -28 L-2 -22 L-8 -28 Z" fill="url(#eggG)">
+        <animateTransform attributeName="transform" type="translate" values="0 0;16 -26" dur="0.8s" begin="cycle.begin+2.8s" fill="freeze"/>
+        <animate attributeName="opacity" values="1;0" dur="0.8s" begin="cycle.begin+2.8s" fill="freeze"/>
+      </path>
+      <text y="72" text-anchor="middle" font-size="13" font-weight="600" fill="#ecefe9">Hatch</text>
+      <text y="90" text-anchor="middle" font-size="11" fill="#98a094">day 1 · 42 g</text>
+    </g>
+
+    <!-- ============ STAGE 3: CHICK (week 1) ============ -->
+    <g transform="translate(600 250)" opacity="0">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="cycle.begin+4.4s" fill="freeze"/>
+      <circle r="46" fill="#1b211c" stroke="#ffffff" stroke-opacity="0.08"/>
+      <g>
+        <animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0" dur="0.6s" begin="cycle.begin+4.9s" repeatCount="3"/>
+        <ellipse cy="8" rx="20" ry="16" fill="url(#chickG)"/>
+        <circle cx="10" cy="-10" r="13" fill="url(#chickG)"/>
+        <circle cx="14" cy="-13" r="2.2" fill="#1f2a22"/>
+        <path d="M22 -10 L31 -7 L22 -4 Z" fill="#e8843a"/>
+        <path d="M-6 22 L-6 30 M6 22 L6 30 M-10 30 L-2 30 M2 30 L10 30" stroke="#e8843a" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M-12 6 Q-22 2 -14 14" fill="none" stroke="#d9a441" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+      <text y="72" text-anchor="middle" font-size="13" font-weight="600" fill="#ecefe9">Chick</text>
+      <text y="90" text-anchor="middle" font-size="11" fill="#98a094">week 1 · 185 g</text>
+    </g>
+
+    <!-- ============ STAGE 4: GROWER (week 3) ============ -->
+    <g transform="translate(840 250)" opacity="0">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="cycle.begin+6.4s" fill="freeze"/>
+      <circle r="46" fill="#1b211c" stroke="#ffffff" stroke-opacity="0.08"/>
+      <g>
+        <animateTransform attributeName="transform" type="scale" values="0.8;1" dur="0.8s" begin="cycle.begin+6.6s" fill="freeze"/>
+        <ellipse cy="8" rx="24" ry="17" fill="url(#henG)"/>
+        <path d="M-24 6 Q-34 -6 -22 -2" fill="none" stroke="#c9a97a" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="14" cy="-12" r="12" fill="url(#henG)"/>
+        <path d="M8 -24 Q12 -32 16 -24 Q20 -32 24 -24 Z" fill="#c9402e"/>
+        <circle cx="18" cy="-14" r="2.2" fill="#1f2a22"/>
+        <path d="M25 -11 L34 -8 L25 -5 Z" fill="#e8843a"/>
+        <path d="M-6 24 L-6 32 M6 24 L6 32 M-11 32 L-1 32 M1 32 L11 32" stroke="#e8843a" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M-10 4 Q-2 -4 6 4" fill="none" stroke="#b08e5e" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <text y="72" text-anchor="middle" font-size="13" font-weight="600" fill="#ecefe9">Grower</text>
+      <text y="90" text-anchor="middle" font-size="11" fill="#98a094">week 3 · 943 g</text>
+    </g>
+
+    <!-- ============ STAGE 5: RESULT (week 6 / lay) ============ -->
+    <g transform="translate(1080 250)" opacity="0">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="cycle.begin+8.4s" fill="freeze"/>
+      <circle r="46" fill="#2f6b3a"/>
+      <circle r="46" fill="none" stroke="#7cc98a" stroke-width="2" opacity="0.7">
+        <animate attributeName="r" values="46;60" dur="1.6s" begin="cycle.begin+8.6s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.7;0" dur="1.6s" begin="cycle.begin+8.6s" repeatCount="indefinite"/>
+      </circle>
+      <g>
+        <ellipse cy="8" rx="27" ry="19" fill="url(#henG)"/>
+        <path d="M-27 4 Q-40 -10 -26 -6 Q-38 -18 -22 -12" fill="none" stroke="#c9a97a" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="16" cy="-14" r="13" fill="url(#henG)"/>
+        <path d="M8 -27 Q12 -37 17 -27 Q21 -37 26 -27 Z" fill="#c9402e"/>
+        <path d="M22 -2 Q26 6 20 4 Z" fill="#c9402e"/>
+        <circle cx="20" cy="-16" r="2.4" fill="#1f2a22"/>
+        <path d="M28 -13 L38 -10 L28 -7 Z" fill="#e8843a"/>
+        <path d="M-7 26 L-7 34 M7 26 L7 34 M-12 34 L-2 34 M2 34 L12 34" stroke="#e8843a" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M-12 4 Q-2 -6 8 4" fill="none" stroke="#b08e5e" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <text y="72" text-anchor="middle" font-size="13" font-weight="600" fill="#ecefe9">Result</text>
+      <text y="90" text-anchor="middle" font-size="11" fill="#98a094">week 6 · 2,857 g</text>
+    </g>
+
+    <!-- ============ COUNTERS ============ -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" dur="0.6s" begin="cycle.begin+8.8s" fill="freeze"/>
+      <rect x="120" y="360" width="960" height="46" rx="14" fill="#1b211c" stroke="#ffffff" stroke-opacity="0.08"/>
+      <g font-size="12" fill="#98a094">
+        <text x="150" y="381">BIRDS</text>
+        <text x="410" y="381">AVG WEIGHT</text>
+        <text x="670" y="381">FEED USED</text>
+        <text x="930" y="381">EGGS / DAY</text>
+      </g>
+      <g font-size="17" font-weight="700" fill="#ecefe9" font-variant-numeric="tabular-nums">
+        <!-- Birds: 4,500 placed → 4,347 alive (counts down through mortality) -->
+        <g transform="translate(220 382)">
+          <text opacity="1">4,500<set attributeName="opacity" to="0" begin="cycle.begin+9.6s"/><set attributeName="opacity" to="1" begin="cycle.begin"/></text>
+          <text opacity="0">4,478<set attributeName="opacity" to="1" begin="cycle.begin+9.6s"/><set attributeName="opacity" to="0" begin="cycle.begin+9.9s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+          <text opacity="0">4,410<set attributeName="opacity" to="1" begin="cycle.begin+9.9s"/><set attributeName="opacity" to="0" begin="cycle.begin+10.2s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+          <text opacity="0" fill="#7cc98a">4,347<set attributeName="opacity" to="1" begin="cycle.begin+10.2s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+        </g>
+        <!-- Weight: 42 g → 2,857 g -->
+        <g transform="translate(510 382)">
+          <text opacity="1">42 g<set attributeName="opacity" to="0" begin="cycle.begin+9.4s"/><set attributeName="opacity" to="1" begin="cycle.begin"/></text>
+          <text opacity="0">185 g<set attributeName="opacity" to="1" begin="cycle.begin+9.4s"/><set attributeName="opacity" to="0" begin="cycle.begin+9.7s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+          <text opacity="0">943 g<set attributeName="opacity" to="1" begin="cycle.begin+9.7s"/><set attributeName="opacity" to="0" begin="cycle.begin+10.0s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+          <text opacity="0">1,524 g<set attributeName="opacity" to="1" begin="cycle.begin+10.0s"/><set attributeName="opacity" to="0" begin="cycle.begin+10.3s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+          <text opacity="0" fill="#7cc98a">2,857 g<set attributeName="opacity" to="1" begin="cycle.begin+10.3s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+        </g>
+        <!-- Feed: 0 → 12,192 kg -->
+        <g transform="translate(760 382)">
+          <text opacity="1">0 kg<set attributeName="opacity" to="0" begin="cycle.begin+9.4s"/><set attributeName="opacity" to="1" begin="cycle.begin"/></text>
+          <text opacity="0">1,880 kg<set attributeName="opacity" to="1" begin="cycle.begin+9.4s"/><set attributeName="opacity" to="0" begin="cycle.begin+9.7s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+          <text opacity="0">5,410 kg<set attributeName="opacity" to="1" begin="cycle.begin+9.7s"/><set attributeName="opacity" to="0" begin="cycle.begin+10.0s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+          <text opacity="0">9,120 kg<set attributeName="opacity" to="1" begin="cycle.begin+10.0s"/><set attributeName="opacity" to="0" begin="cycle.begin+10.3s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+          <text opacity="0" fill="#7cc98a">12,192 kg<set attributeName="opacity" to="1" begin="cycle.begin+10.3s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+        </g>
+        <!-- Eggs (layer path): 0 → 2,485 -->
+        <g transform="translate(1020 382)">
+          <text opacity="1">0<set attributeName="opacity" to="0" begin="cycle.begin+9.5s"/><set attributeName="opacity" to="1" begin="cycle.begin"/></text>
+          <text opacity="0">610<set attributeName="opacity" to="1" begin="cycle.begin+9.5s"/><set attributeName="opacity" to="0" begin="cycle.begin+9.8s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+          <text opacity="0">1,740<set attributeName="opacity" to="1" begin="cycle.begin+9.8s"/><set attributeName="opacity" to="0" begin="cycle.begin+10.1s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+          <text opacity="0" fill="#7cc98a">2,485<set attributeName="opacity" to="1" begin="cycle.begin+10.1s"/><set attributeName="opacity" to="0" begin="cycle.begin"/></text>
+        </g>
+      </g>
+    </g>
+
+    <!-- mortality ticks along the track (birds leaving) -->
+    <g fill="#e26a5b" font-size="11" font-weight="600">
+      <text x="480" y="228" text-anchor="middle" opacity="0">−22<animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.2;0.8;1" dur="1.6s" begin="cycle.begin+3.6s" fill="freeze"/><animate attributeName="y" values="232;212" dur="1.6s" begin="cycle.begin+3.6s" fill="freeze"/></text>
+      <text x="720" y="228" text-anchor="middle" opacity="0">−68<animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.2;0.8;1" dur="1.6s" begin="cycle.begin+5.6s" fill="freeze"/><animate attributeName="y" values="232;212" dur="1.6s" begin="cycle.begin+5.6s" fill="freeze"/></text>
+      <text x="960" y="228" text-anchor="middle" opacity="0">−63<animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.2;0.8;1" dur="1.6s" begin="cycle.begin+7.6s" fill="freeze"/><animate attributeName="y" values="232;212" dur="1.6s" begin="cycle.begin+7.6s" fill="freeze"/></text>
+    </g>
+  </g>
+</svg>
