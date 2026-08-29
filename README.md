@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PMS — Poultry Management System
 
-## Getting Started
+Farm records for broiler and layer flocks: sheds, flocks, daily logs, bird movements, dashboard KPIs and alerts.
+Spec: [SPEC.md](SPEC.md). Agent guidance: [CLAUDE.md](CLAUDE.md).
 
-First, run the development server:
-
+## Quick start
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install          # also runs `prisma generate`
+npm run db:reset     # migrate + seed demo data (2 flocks, 30 days of logs)
+npm run dev          # http://localhost:3000
 ```
+Demo logins (phone / password): `0700000001 / owner123` (Owner), `0700000002 / manager123`, `0700000003 / worker123`, `0700000004 / vet123`, `0700000005 / acct123`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
+| Command | Purpose |
+|---|---|
+| `npm test` | Unit tests for business formulas (population, mortality, FCR, hen-day, alerts) |
+| `npm run db:migrate` | Create a new migration after editing `prisma/schema.prisma` |
+| `npm run db:seed` | Re-seed demo data |
+| `npm run build && npm start` | Production build |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Structure
+- `prisma/schema.prisma` — all 13 entities from the spec + `settings`, `breed_standards`, `tasks`
+- `src/lib/domain/` — pure formulas, no DB (tested in `tests/`)
+- `src/lib/services/` — DB reads that assemble KPIs and evaluate alerts
+- `src/lib/actions.ts` — server actions: zod validation → business rules → persist → audit log
+- `src/lib/settings.ts` — configurable thresholds (read from the `settings` table)
+- `src/lib/i18n.ts` — externalized strings (EN complete; Dari/Pashto keys stubbed, RTL layout switches by user language)
+- `src/app/(app)/` — authenticated pages; `src/app/login`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Switching to PostgreSQL
+Change `provider = "postgresql"` in `prisma/schema.prisma`, set `DATABASE_URL`, delete `prisma/migrations`, run `npm run db:migrate`.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Roadmap
+Phase 1 (this release) is complete. Phases 2–6 (health & vaccine templates, finance & inventory, analytics, environment/export/offline, AI features) are described in SPEC.md Part F.

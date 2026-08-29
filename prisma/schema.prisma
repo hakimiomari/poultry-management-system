@@ -1,0 +1,278 @@
+// PMS data model — see SPEC.md. SQLite has no native enums; enum values are
+// validated in src/lib/enums.ts + zod. Switch provider to "postgresql" for prod.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  fullName     String
+  phone        String   @unique
+  passwordHash String
+  role         String   // OWNER | FARM_MANAGER | WORKER | VETERINARIAN | ACCOUNTANT
+  language     String   @default("EN") // EN | FA_DARI | PS_PASHTO
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  dailyLogs DailyLog[]
+  auditLogs AuditLog[]
+  tasks     Task[]
+
+  @@map("users")
+}
+
+model Shed {
+  id         String   @id @default(uuid())
+  shedName   String   @unique
+  capacity   Int
+  shedType   String   // OPEN_SIDED | CLOSED_ENVIRONMENT | SEMI_CLOSED
+  hasSensors Boolean  @default(false)
+  status     String   @default("EMPTY") // OCCUPIED | EMPTY | CLEANING | MAINTENANCE
+  createdAt  DateTime @default(now())
+
+  flocks          Flock[]
+  environmentLogs EnvironmentLog[]
+
+  @@map("sheds")
+}
+
+model Flock {
+  id                String   @id @default(uuid())
+  flockName         String   @unique
+  flockType         String   // BROILER | LAYER
+  breed             String
+  shedId            String
+  intakeDate        DateTime
+  initialQuantity   Int
+  initialAvgWeightG Float    @default(40)
+  chickCostAfn      Float    @default(0)
+  status            String   @default("ACTIVE") // ACTIVE | COMPLETED
+  closedAt          DateTime?
+  createdAt         DateTime @default(now())
+
+  shed           Shed                @relation(fields: [shedId], references: [id])
+  dailyLogs      DailyLog[]
+  birdMovements  BirdMovement[]
+  healthLogs     HealthLog[]
+  transactions   Transaction[]
+  weightSamples  WeightSample[]
+  feedMovements  FeedStockMovement[]
+  eggMovements   EggStockMovement[]
+
+  @@map("flocks")
+}
+
+model DailyLog {
+  id             String   @id @default(uuid())
+  flockId        String
+  date           DateTime
+  feedConsumedKg Float    @default(0)
+  waterConsumedL Float?
+  eggsCollected  Int      @default(0)
+  eggsBroken     Int      @default(0)
+  notes          String?
+  recordedById   String?
+  createdAt      DateTime @default(now())
+
+  flock      Flock @relation(fields: [flockId], references: [id], onDelete: Cascade)
+  recordedBy User? @relation(fields: [recordedById], references: [id])
+
+  @@unique([flockId, date])
+  @@map("daily_logs")
+}
+
+model BirdMovement {
+  id                  String   @id @default(uuid())
+  flockId             String
+  date                DateTime
+  movementType        String   // MORTALITY | CULL | SALE | TRANSFER | THEFT_LOSS
+  quantity            Int
+  cause               String?  // DISEASE | HEAT | INJURY | PREDATOR | LOW_PRODUCTION | MARKET_READY | UNKNOWN
+  averageWeightG      Float?
+  linkedTransactionId String?  @unique
+  notes               String?
+  createdAt           DateTime @default(now())
+
+  flock             Flock        @relation(fields: [flockId], references: [id], onDelete: Cascade)
+  linkedTransaction Transaction? @relation(fields: [linkedTransactionId], references: [id])
+
+  @@index([flockId, date])
+  @@map("bird_movements")
+}
+
+model HealthLog {
+  id               String    @id @default(uuid())
+  flockId          String
+  scheduledDate    DateTime
+  administeredDate DateTime?
+  type             String    // VACCINE | MEDICATION | TREATMENT
+  productName      String
+  method           String?   // WATER | SPRAY | INJECTION | EYE_DROP | FEED
+  status           String    @default("PENDING") // PENDING | DONE | MISSED
+  notes            String?
+
+  flock Flock @relation(fields: [flockId], references: [id], onDelete: Cascade)
+
+  @@index([flockId, scheduledDate])
+  @@map("health_logs")
+}
+
+model Contact {
+  id                    String  @id @default(uuid())
+  name                  String
+  phone                 String?
+  address               String?
+  contactType           String  // FEED_SUPPLIER | CHICK_SUPPLIER | MEDICINE_SUPPLIER | EGG_BUYER | MEAT_BUYER | OTHER
+  outstandingBalanceAfn Float   @default(0)
+
+  transactions Transaction[]
+
+  @@map("contacts")
+}
+
+model Transaction {
+  id            String   @id @default(uuid())
+  date          DateTime
+  type          String   // INCOME | EXPENSE
+  category      String   // FEED | CHICKS | MEDICINE | LABOR | UTILITIES | EGG_SALE | BIRD_SALE | OTHER
+  amountAfn     Float
+  flockId       String?
+  contactId     String?
+  paymentStatus String   @default("PAID") // PAID | CREDIT | PARTIAL
+  amountPaidAfn Float    @default(0)
+  description   String?
+  createdAt     DateTime @default(now())
+
+  flock        Flock?             @relation(fields: [flockId], references: [id])
+  contact      Contact?           @relation(fields: [contactId], references: [id])
+  birdMovement BirdMovement?
+  eggMovement  EggStockMovement?
+
+  @@map("transactions")
+}
+
+model EnvironmentLog {
+  id              String   @id @default(uuid())
+  shedId          String
+  timestamp       DateTime
+  temperatureC    Float
+  humidityPercent Float?
+  ammoniaPpm      Float?
+  source          String   @default("MANUAL") // MANUAL | SENSOR
+
+  shed Shed @relation(fields: [shedId], references: [id], onDelete: Cascade)
+
+  @@index([shedId, timestamp])
+  @@map("environment_logs")
+}
+
+model FeedStock {
+  id             String @id @default(uuid())
+  feedName       String @unique
+  feedStage      String // STARTER | GROWER | FINISHER | LAYER | PRE_LAYER
+  currentStockKg Float  @default(0)
+  reorderLevelKg Float  @default(0)
+  unitCostAfn    Float  @default(0)
+
+  movements FeedStockMovement[]
+
+  @@map("feed_stock")
+}
+
+model FeedStockMovement {
+  id           String   @id @default(uuid())
+  feedId       String
+  date         DateTime
+  movementType String   // PURCHASE | CONSUMPTION | ADJUSTMENT | WASTE
+  quantityKg   Float
+  flockId      String?
+
+  feed  FeedStock @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  flock Flock?    @relation(fields: [flockId], references: [id])
+
+  @@map("feed_stock_movements")
+}
+
+model EggStockMovement {
+  id                  String   @id @default(uuid())
+  date                DateTime
+  movementType        String   // COLLECTION | SALE | DAMAGE | HOME_USE | ADJUSTMENT
+  quantityEggs        Int
+  grade               String?  // LARGE | MEDIUM | SMALL | DAMAGED
+  flockId             String?
+  linkedTransactionId String?  @unique
+
+  flock             Flock?       @relation(fields: [flockId], references: [id])
+  linkedTransaction Transaction? @relation(fields: [linkedTransactionId], references: [id])
+
+  @@map("egg_stock_movements")
+}
+
+model WeightSample {
+  id                String   @id @default(uuid())
+  flockId           String
+  sampleDate        DateTime
+  sampleSize        Int
+  averageWeightG    Float
+  uniformityPercent Float?
+
+  flock Flock @relation(fields: [flockId], references: [id], onDelete: Cascade)
+
+  @@map("weight_samples")
+}
+
+model BreedStandard {
+  id                String @id @default(uuid())
+  breed             String
+  flockType         String // BROILER | LAYER
+  week              Int
+  targetWeightG     Float?
+  cumulativeFeedG   Float?
+  targetProduction  Float? // hen-day % for layers
+
+  @@unique([breed, week])
+  @@map("breed_standards")
+}
+
+model Task {
+  id           String    @id @default(uuid())
+  title        String
+  assignedToId String?
+  dueDate      DateTime
+  status       String    @default("PENDING") // PENDING | DONE
+  completedAt  DateTime?
+
+  assignedTo User? @relation(fields: [assignedToId], references: [id])
+
+  @@map("tasks")
+}
+
+model Setting {
+  key         String @id
+  value       String
+  description String?
+
+  @@map("settings")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  tableName String
+  recordId  String
+  action    String   // CREATE | UPDATE | DELETE
+  oldValue  String?
+  newValue  String?
+  timestamp DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([tableName, recordId])
+  @@map("audit_logs")
+}
