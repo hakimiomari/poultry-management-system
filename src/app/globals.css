@@ -94,7 +94,7 @@
 }
 
 @theme inline {
-  --font-sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Vazirmatn", "Noto Sans Arabic", sans-serif;
+  --font-sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, var(--font-vazir), "Noto Sans Arabic", sans-serif;
   --font-heading: var(--font-sans);
   --color-background: var(--background); --color-foreground: var(--foreground);
   --color-card: var(--card); --color-card-foreground: var(--card-foreground);
@@ -124,3 +124,5 @@
   .recharts-responsive-container { min-width: 0; }
 }
 @utility tabular { font-variant-numeric: tabular-nums; }
+/* Arabic-script UI: Vazirmatn first, slightly larger line-height for diacritics */
+html[dir="rtl"] body { font-family: var(--font-vazir), ui-sans-serif, system-ui, sans-serif; line-height: 1.6; }

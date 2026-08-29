@@ -34,13 +34,13 @@ export const PageHeader = ({ title, subtitle, children }: { title: string; subti
   </div>
 );
 
-export const AlertBanner = ({ severity, message, action }: { severity: string; message: string; action: string }) => {
+export const AlertBanner = ({ severity, severityLabel, message, action }: { severity: string; severityLabel?: string; message: string; action: string }) => {
   const hot = severity === "CRITICAL" || severity === "HIGH";
   return (
     <div className={cn("flex items-start gap-3 rounded-lg border px-4 py-3 text-sm", hot ? "border-destructive/30 bg-danger-soft" : "border-warning/40 bg-warning-soft")}>
       {hot ? <Siren className="mt-0.5 size-4 shrink-0 text-destructive" /> : <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />}
       <div className="flex-1"><span className="font-semibold">{message}</span><span className="text-muted-foreground"> — {action}</span></div>
-      <ToneBadge tone={hot ? "red" : "amber"}>{severity}</ToneBadge>
+      <ToneBadge tone={hot ? "red" : "amber"}>{severityLabel ?? severity}</ToneBadge>
     </div>
   );
 };

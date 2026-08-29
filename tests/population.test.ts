@@ -27,7 +27,7 @@ describe("population formulas", () => {
   it("age in days", () => { expect(ageInDays("2026-08-01", "2026-08-29")).toBe(28); });
   it("cannot remove more birds than present", () => {
     expect(validateMovement(1000, moves, 690).ok).toBe(true);
-    expect(validateMovement(1000, moves, 691).ok).toBe(false);
+    const r = validateMovement(1000, moves, 691); expect(r.ok).toBe(false); if (!r.ok) expect(r).toMatchObject({ key: "err.notEnoughBirds", params: { n: 690, q: 691 } });
     expect(validateMovement(1000, moves, 0).ok).toBe(false);
   });
   it("shed capacity rule", () => {

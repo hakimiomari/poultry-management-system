@@ -25,7 +25,7 @@ Demo logins (phone / password): `0700000001 / owner123` (Owner), `0700000002 / m
 - `src/lib/services/` — DB reads that assemble KPIs and evaluate alerts
 - `src/lib/actions.ts` — server actions: zod validation → business rules → persist → audit log
 - `src/lib/settings.ts` — configurable thresholds (read from the `settings` table)
-- `src/lib/i18n.ts` — externalized strings (EN complete; Dari/Pashto keys stubbed, RTL layout switches by user language)
+- `src/lib/i18n/` — full English / Dari / Pashto dictionaries (typed, placeholder-checked by tests); `src/lib/locale.ts` resolves the language; RTL layout and Vazirmatn font switch automatically. Translations were machine-drafted — have a native speaker review before release.
 - `src/components/ui/` — shadcn/ui primitives; `src/components/forms/` — create/edit dialogs per entity
 - `src/app/(app)/` — authenticated pages; `src/app/login`
 
@@ -33,4 +33,4 @@ Demo logins (phone / password): `0700000001 / owner123` (Owner), `0700000002 / m
 Change `provider = "postgresql"` in `prisma/schema.prisma`, set `DATABASE_URL`, delete `prisma/migrations`, run `npm run db:migrate`.
 
 ## Roadmap
-Phase 1 (this release) is complete. Phases 2–6 (health & vaccine templates, finance & inventory, analytics, environment/export/offline, AI features) are described in SPEC.md Part F.
+Phase 1 (this release) is complete, including full localization (Phase 5's language work pulled forward). Phases 2–6 (health & vaccine templates, finance & inventory, analytics, environment/export/offline, AI features) are described in SPEC.md Part F.

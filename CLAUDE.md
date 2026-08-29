@@ -15,7 +15,7 @@ Source-of-truth spec: `SPEC.md` (v2.0). Read it before changing data models, for
 - **No hardcoded business numbers.** Thresholds go in the `settings` table; breed curves in `breed_standards`.
 - Current population = initial_quantity − Σ bird_movements.quantity (never track a "current count" column).
 - Every write goes through a validated server action / API route, and is recorded in `audit_logs`.
-- Enum labels are displayed via translation keys (`src/lib/i18n.ts`) — never raw enum strings in UI.
+- **Localization is complete (EN / Dari / Pashto).** Dictionaries in `src/lib/i18n/{en,fa,ps}.ts` are typed against `en.ts` — adding a key to EN without FA/PS fails `tsc`, and `tests/i18n.test.ts` checks placeholders match. Never hardcode UI text: server components use `const { t, lang } = await getT()` (`src/lib/locale.ts`), client components use `useT()` (`src/components/I18nProvider.tsx`). Action errors and alert/rule messages are keys (`err.*`, `alert.*`) translated at render. Enum labels via `enumLabel(v, lang)`. Language = session user's language, else the `pms_lang` cookie set by the login-page switcher. RTL is set on `<html dir>` by the root layout; use logical classes (`ms-`, `text-end`) and `dir="ltr"` on dates/phones.
 
 ## Commands
 - `npm run dev` — start; `npm run db:reset` — migrate + seed; `npm test` — vitest

@@ -11,6 +11,7 @@ describe("alerts #3 and #13", () => {
     const before = new Date("2026-08-29T10:00:00"); const after = new Date("2026-08-29T19:00:00");
     expect(missingDailyLogAlert("f", "A", false, before, "18:00")).toBeNull();
     expect(missingDailyLogAlert("f", "A", false, after, "18:00")?.code).toBe("MISSING_DAILY_LOG");
+    expect(abnormalMortalityAlert("f", "A", 1.5, 1)?.params).toEqual({ flock: "A", pct: "1.50", threshold: 1 });
     expect(missingDailyLogAlert("f", "A", true, after, "18:00")).toBeNull();
   });
 });
