@@ -29,6 +29,16 @@ Small and mid-size poultry farms still run on notebooks and memory. PMS replaces
 
 ---
 
+## 🐣 From egg to result
+
+<div align="center">
+<img src="docs/growth.svg" alt="Growth journey: egg → hatch → chick → grower → result, with birds, weight, feed and eggs counted at every step" width="100%" />
+</div>
+
+A batch is tracked from placement to sale. At every stage the system knows exactly how many birds are alive, how much they weigh against the breed standard, how much feed has gone in and — for layers — how many eggs came out. Losses are recorded as movements, never as an overwritten count.
+
+---
+
 ## 🚀 Quick start
 
 ```bash
