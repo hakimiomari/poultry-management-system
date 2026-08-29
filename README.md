@@ -26,6 +26,7 @@ Demo logins (phone / password): `0700000001 / owner123` (Owner), `0700000002 / m
 - `src/lib/actions.ts` — server actions: zod validation → business rules → persist → audit log
 - `src/lib/settings.ts` — configurable thresholds (read from the `settings` table)
 - `src/lib/i18n.ts` — externalized strings (EN complete; Dari/Pashto keys stubbed, RTL layout switches by user language)
+- `src/components/ui/` — shadcn/ui primitives; `src/components/forms/` — create/edit dialogs per entity
 - `src/app/(app)/` — authenticated pages; `src/app/login`
 
 ## Switching to PostgreSQL
