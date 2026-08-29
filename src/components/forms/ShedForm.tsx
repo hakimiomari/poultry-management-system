@@ -7,20 +7,22 @@ import { Label } from "@/components/ui/label";
 import { saveShedAction } from "@/lib/actions";
 import { SHED_STATUSES, SHED_TYPES } from "@/lib/enums";
 import { enumLabel } from "@/lib/i18n";
+import { getT } from "@/lib/locale";
 import type { ReactNode } from "react";
 
 type Shed = { id: string; shedName: string; capacity: number; shedType: string; hasSensors: boolean; status: string };
 
-export function ShedDialog({ trigger, shed }: { trigger: ReactNode; shed?: Shed }) {
+export async function ShedDialog({ trigger, shed }: { trigger: ReactNode; shed?: Shed }) {
+  const { t, lang } = await getT();
   return (
-    <FormDialog trigger={trigger} title={shed ? `Edit ${shed.shedName}` : "New shed"} description="A physical house where a flock lives." action={saveShedAction}>
+    <FormDialog trigger={trigger} title={shed ? t("sheds.form.editTitle", { name: shed.shedName }) : t("sheds.form.title")} description={t("sheds.form.desc")} action={saveShedAction}>
       {shed && <input type="hidden" name="id" value={shed.id} />}
-      <Field label="Shed name"><Input name="shedName" required defaultValue={shed?.shedName} placeholder="Shed-4-East" /></Field>
+      <Field label={t("sheds.form.name")}><Input name="shedName" required defaultValue={shed?.shedName} placeholder="Shed-4-East" /></Field>
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Capacity (birds)"><Input name="capacity" type="number" inputMode="numeric" min={1} required defaultValue={shed?.capacity} /></Field>
-        <Field label="Type"><NativeSelect name="shedType" defaultValue={shed?.shedType}>{SHED_TYPES.map((v) => <NativeSelectOption key={v} value={v}>{enumLabel(v)}</NativeSelectOption>)}</NativeSelect></Field>
-        <Field label="Status"><NativeSelect name="status" defaultValue={shed?.status ?? "EMPTY"}>{SHED_STATUSES.map((v) => <NativeSelectOption key={v} value={v}>{enumLabel(v)}</NativeSelectOption>)}</NativeSelect></Field>
-        <div className="flex items-end gap-2 pb-2"><Checkbox id="hasSensors" name="hasSensors" defaultChecked={shed?.hasSensors} /><Label htmlFor="hasSensors">Has environment sensors</Label></div>
+        <Field label={t("sheds.form.capacity")}><Input name="capacity" type="number" inputMode="numeric" min={1} required defaultValue={shed?.capacity} /></Field>
+        <Field label={t("sheds.form.type")}><NativeSelect name="shedType" defaultValue={shed?.shedType}>{SHED_TYPES.map((v) => <NativeSelectOption key={v} value={v}>{enumLabel(v, lang)}</NativeSelectOption>)}</NativeSelect></Field>
+        <Field label={t("sheds.form.status")}><NativeSelect name="status" defaultValue={shed?.status ?? "EMPTY"}>{SHED_STATUSES.map((v) => <NativeSelectOption key={v} value={v}>{enumLabel(v, lang)}</NativeSelectOption>)}</NativeSelect></Field>
+        <div className="flex items-end gap-2 pb-2"><Checkbox id="hasSensors" name="hasSensors" defaultChecked={shed?.hasSensors} /><Label htmlFor="hasSensors">{t("sheds.form.hasSensors")}</Label></div>
       </div>
     </FormDialog>
   );

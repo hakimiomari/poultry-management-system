@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import type { ActionState } from "@/lib/actions";
 import { Loader2 } from "lucide-react";
+import { useT } from "@/components/I18nProvider";
 
 type Props = {
   trigger: ReactNode;                 // any element; wrapped with DialogTrigger
@@ -15,7 +16,8 @@ type Props = {
 
 /** Modal form bound to a server action. Closes and refreshes data on success; shows errors inline
  *  while keeping the user's input (we invoke the action manually so React doesn't reset the form). */
-export function FormDialog({ trigger, title, description, action, submitLabel = "Save", children, wide }: Props) {
+export function FormDialog({ trigger, title, description, action, submitLabel, children, wide }: Props) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const [state, formAction, pending] = useActionState(action, undefined);
@@ -29,8 +31,8 @@ export function FormDialog({ trigger, title, description, action, submitLabel = 
           {state?.error && !state.ok && <div className="rounded-lg border border-destructive/30 bg-danger-soft px-3 py-2 text-sm text-destructive">{state.error}</div>}
           <div className="space-y-4">{children}</div>
           <DialogFooter>
-            <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
-            <Button type="submit" disabled={pending}>{pending && <Loader2 className="animate-spin" />}{submitLabel}</Button>
+            <DialogClose render={<Button type="button" variant="outline" />}>{t("common.cancel")}</DialogClose>
+            <Button type="submit" disabled={pending}>{pending && <Loader2 className="animate-spin" />}{submitLabel ?? t("common.save")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

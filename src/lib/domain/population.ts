@@ -40,16 +40,17 @@ export function ageInDays(intakeDate: Date | string, on: Date | string = new Dat
 }
 
 /** Movement quantity validation: cannot remove more birds than currently present. */
-export function validateMovement(initialQuantity: number, movements: MovementLike[], quantity: number) {
+export type RuleError = { ok: false; key: "err.qtyPositive" | "err.notEnoughBirds" | "err.capacityExceeded"; params: Record<string, number> };
+export function validateMovement(initialQuantity: number, movements: MovementLike[], quantity: number): { ok: true; remaining: number } | RuleError {
   const current = currentQuantity(initialQuantity, movements);
-  if (quantity <= 0) return { ok: false as const, error: "Quantity must be positive" };
-  if (quantity > current) return { ok: false as const, error: `Only ${current} birds present; cannot remove ${quantity}` };
-  return { ok: true as const, remaining: current - quantity };
+  if (quantity <= 0) return { ok: false, key: "err.qtyPositive", params: {} };
+  if (quantity > current) return { ok: false, key: "err.notEnoughBirds", params: { n: current, q: quantity } };
+  return { ok: true, remaining: current - quantity };
 }
 
 /** Shed capacity rule (SPEC Entity 5): new flock + birds already housed ≤ capacity. */
-export function validateShedCapacity(capacity: number, alreadyHoused: number, newQuantity: number) {
+export function validateShedCapacity(capacity: number, alreadyHoused: number, newQuantity: number): { ok: true } | RuleError {
   const total = alreadyHoused + newQuantity;
-  if (total > capacity) return { ok: false as const, error: `Shed capacity ${capacity} exceeded (${alreadyHoused} housed + ${newQuantity} new = ${total})` };
-  return { ok: true as const };
+  if (total > capacity) return { ok: false, key: "err.capacityExceeded", params: { cap: capacity, housed: alreadyHoused, added: newQuantity, total } };
+  return { ok: true };
 }
