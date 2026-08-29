@@ -29,11 +29,6 @@ export async function loginAction(_: ActionState, fd: FormData): Promise<ActionS
   redirect("/dashboard");
 }
 export async function logoutAction() { await doLogout(); redirect("/login"); }
-export async function setLangAction(lang: string) {
-  const { cookies } = await import("next/headers"); const { LANG_COOKIE } = await import("./locale"); const { isLang } = await import("./i18n");
-  if (isLang(lang)) (await cookies()).set(LANG_COOKIE, lang, { path: "/", maxAge: 365 * 86400 });
-  revalidatePath("/", "layout");
-}
 
 /* ── Sheds ─────────────────────────────────────────────────────── */
 export async function saveShedAction(_: ActionState, fd: FormData): Promise<ActionState> {
