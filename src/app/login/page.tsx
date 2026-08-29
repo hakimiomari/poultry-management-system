@@ -1,5 +1,4 @@
 import { LoginForm } from "./LoginForm";
-import { LangSwitcher } from "@/components/LangSwitcher";
 import { getT } from "@/lib/locale";
 
 export default async function LoginPage() {
@@ -14,7 +13,7 @@ export default async function LoginPage() {
       </section>
       <section className="flex flex-col justify-center p-6 sm:p-12">
         <div className="mx-auto w-full max-w-sm">
-          <div className="mb-6 flex items-center justify-between"><span className="text-4xl lg:hidden">🐔</span><LangSwitcher className="ms-auto" /></div>
+          <div className="mb-6 lg:hidden"><span className="text-4xl">🐔</span></div>
           <h1 className="font-heading text-2xl font-bold">{t("auth.login")}</h1>
           <p className="mb-6 text-sm text-muted-foreground">{t("app.title")}</p>
           <LoginForm />

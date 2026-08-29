@@ -34,7 +34,7 @@ export default async function Dashboard() {
         {flocks.map((f) => (
           <Card key={f.flock.id}>
             <CardHeader><CardTitle className="flex items-center gap-2">{f.flock.flockName}<ToneBadge tone={typeTone(f.flock.flockType)}>{enumLabel(f.flock.flockType, lang)}</ToneBadge></CardTitle>
-              <CardAction><Button variant="ghost" size="sm" render={<Link href={`/flocks/${f.flock.id}`} />}>{t("common.open")}<ArrowRight className="rtl:rotate-180" /></Button></CardAction></CardHeader>
+              <CardAction><Button variant="ghost" size="sm" nativeButton={false} render={<Link href={`/flocks/${f.flock.id}`} />}>{t("common.open")}<ArrowRight className="rtl:rotate-180" /></Button></CardAction></CardHeader>
             <CardContent>
               <div className="mb-3 grid grid-cols-3 gap-3">
                 <Stat label={t("dash.population")} value={fmtNum(f.current)} sub={`${t("common.of")} ${fmtNum(f.flock.initialQuantity)}`} />

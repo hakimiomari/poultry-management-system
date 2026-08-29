@@ -13,7 +13,7 @@ export function ConfirmButton({ trigger, title, description, action, confirmLabe
   const [pending, start] = useTransition(); const router = useRouter();
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<span className="contents" />}>{trigger}</DialogTrigger>
+      <DialogTrigger render={<span className="contents" />} nativeButton={false}>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader><DialogTitle>{title}</DialogTitle><DialogDescription>{description}</DialogDescription></DialogHeader>
         {error && <div className="rounded-lg border border-destructive/30 bg-danger-soft px-3 py-2 text-sm text-destructive">{error}</div>}
