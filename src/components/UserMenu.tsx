@@ -11,30 +11,38 @@ import { ChevronDown, KeyRound, LogOut, UserCircle } from "lucide-react";
 
 type Props = { user: { fullName: string }; logout: () => Promise<void> };
 
+const Avatar = ({ name, className = "" }: { name: string; className?: string }) => (
+  <span className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 font-bold text-primary-foreground shadow-sm ring-2 ring-background ${className}`}>
+    {name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+  </span>
+);
+
+const itemCls = "group gap-3 rounded-lg px-2.5 py-2 text-sm focus:bg-primary/10 focus:text-foreground [&_svg]:size-4 [&_svg]:text-muted-foreground focus:[&_svg]:text-primary!";
+
 export function UserMenu({ user, logout }: Props) {
   const { t } = useT();
   const [pwOpen, setPwOpen] = useState(false);
-  const initials = user.fullName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg px-2 py-1 text-sm outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 data-open:bg-muted">
-          <span className="flex size-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">{initials}</span>
-          <span className="hidden font-medium sm:block">{user.fullName}</span>
-          <ChevronDown className="size-4 text-muted-foreground" />
+        <DropdownMenuTrigger className="group flex items-center gap-2 rounded-full border border-transparent py-1 pe-2.5 ps-1 text-sm outline-none transition hover:border-border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 data-open:border-border data-open:bg-muted">
+          <Avatar name={user.fullName} className="size-8 text-xs" />
+          <span className="hidden max-w-40 truncate font-medium sm:block">{user.fullName}</span>
+          <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200 group-data-open:rotate-180" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64">
-          <DropdownMenuGroup><DropdownMenuLabel className="flex items-center gap-3 py-2">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{initials}</span>
-            <span className="min-w-0 truncate font-semibold">{user.fullName}</span>
-          </DropdownMenuLabel></DropdownMenuGroup>
-          <DropdownMenuSeparator />
+        <DropdownMenuContent align="end" sideOffset={8} className="w-64 rounded-xl p-1.5 shadow-lg">
           <DropdownMenuGroup>
-            <DropdownMenuItem nativeButton={false} render={<Link href="/profile" />}><UserCircle />{t("nav.profile")}</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setPwOpen(true)}><KeyRound />{t("profile.changePw")}</DropdownMenuItem>
+            <DropdownMenuLabel className="mb-1 flex items-center gap-3 rounded-lg bg-muted/60 px-3 py-3">
+              <Avatar name={user.fullName} className="size-11 text-sm" />
+              <span className="min-w-0 truncate text-base font-semibold text-foreground">{user.fullName}</span>
+            </DropdownMenuLabel>
           </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive" onClick={() => logout()}><LogOut />{t("nav.logout")}</DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuItem nativeButton={false} render={<Link href="/profile" />} className={itemCls}><UserCircle />{t("nav.profile")}</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setPwOpen(true)} className={itemCls}><KeyRound />{t("profile.changePw")}</DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator className="my-1.5" />
+          <DropdownMenuItem variant="destructive" onClick={() => logout()} className={`${itemCls} [&_svg]:text-destructive`}><LogOut />{t("nav.logout")}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <FormDialog open={pwOpen} onOpenChange={setPwOpen} title={t("pw.title")} action={changePasswordAction} submitLabel={t("pw.update")}>
