@@ -16,7 +16,9 @@ export async function login(phone: string, password: string): Promise<SessionUse
   if (!(await bcrypt.compare(password, user.passwordHash))) return null;
   const su: SessionUser = { id: user.id, fullName: user.fullName, role: user.role as Role, language: user.language };
   const token = await new SignJWT({ ...su }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("7d").sign(secret());
-  (await cookies()).set(COOKIE, token, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 7 * 86400 });
+  const jar = await cookies();
+  jar.set(COOKIE, token, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 7 * 86400 });
+  jar.set("pms_theme", user.theme, { sameSite: "lax", path: "/", maxAge: 365 * 86400 });
   return su;
 }
 

@@ -1,15 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useState, startTransition } from "react";
 import Link from "next/link";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import { setThemeAction } from "@/lib/actions";
 import { FormDialog } from "@/components/FormDialog";
 import { Field } from "@/components/forms/fields";
 import { Input } from "@/components/ui/input";
 import { changePasswordAction } from "@/lib/actions";
 import { useT } from "@/components/I18nProvider";
-import { ChevronDown, KeyRound, LogOut, UserCircle } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, UserCircle, Sun, Moon, Monitor } from "lucide-react";
 
-type Props = { user: { fullName: string }; logout: () => Promise<void> };
+type Props = { user: { fullName: string }; theme: string; logout: () => Promise<void> };
 
 const Avatar = ({ name, className = "" }: { name: string; className?: string }) => (
   <span className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 font-bold text-primary-foreground shadow-sm ring-2 ring-background ${className}`}>
@@ -19,8 +21,8 @@ const Avatar = ({ name, className = "" }: { name: string; className?: string }) 
 
 const itemCls = "group gap-3 rounded-lg px-2.5 py-2 text-sm focus:bg-primary/10 focus:text-foreground [&_svg]:size-4 [&_svg]:text-muted-foreground focus:[&_svg]:text-primary!";
 
-export function UserMenu({ user, logout }: Props) {
-  const { t } = useT();
+export function UserMenu({ user, theme, logout }: Props) {
+  const { t } = useT(); const router = useRouter();
   const [pwOpen, setPwOpen] = useState(false);
   return (
     <>
@@ -40,6 +42,14 @@ export function UserMenu({ user, logout }: Props) {
           <DropdownMenuGroup>
             <DropdownMenuItem nativeButton={false} render={<Link href="/profile" />} className={itemCls}><UserCircle />{t("nav.profile")}</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setPwOpen(true)} className={itemCls}><KeyRound />{t("profile.changePw")}</DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator className="my-1.5" />
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="px-2.5 pb-1 text-xs font-medium text-muted-foreground">{t("theme.label")}</DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={theme} onValueChange={(v) => { startTransition(async () => { await setThemeAction(String(v)); router.refresh(); }); }}>
+              {([["LIGHT", Sun, t("theme.LIGHT")], ["DARK", Moon, t("theme.DARK")], ["SYSTEM", Monitor, t("theme.SYSTEM")]] as const).map(([v, Icon, label]) => (
+                <DropdownMenuRadioItem key={v} value={v} className="gap-3 rounded-lg py-2 text-sm [&_svg]:size-4 [&_svg]:text-muted-foreground"><Icon />{label}</DropdownMenuRadioItem>))}
+            </DropdownMenuRadioGroup>
           </DropdownMenuGroup>
           <DropdownMenuSeparator className="my-1.5" />
           <DropdownMenuItem variant="destructive" onClick={() => logout()} className={`${itemCls} [&_svg]:text-destructive`}><LogOut />{t("nav.logout")}</DropdownMenuItem>

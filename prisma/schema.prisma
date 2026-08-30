@@ -17,6 +17,7 @@ model User {
   passwordHash String
   role         String   // OWNER | FARM_MANAGER | WORKER | VETERINARIAN | ACCOUNTANT
   language     String   @default("EN") // EN | FA_DARI | PS_PASHTO
+  theme        String   @default("SYSTEM") // SYSTEM | LIGHT | DARK
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
 
