@@ -13,7 +13,7 @@ import { FlockDialog } from "@/components/forms/FlockForm";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { enumLabel } from "@/lib/i18n";
 import { getT } from "@/lib/locale";
-import { fmtDate, fmtNum } from "@/lib/format";
+import { fmtDateDisplay, fmtNum } from "@/lib/format";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/enums";
 import { Hash, CalendarDays, TrendingDown, Skull, Wheat, Egg, ShoppingCart, ClipboardPlus, ArrowLeftRight, Pencil, Trash2, Lock } from "lucide-react";
@@ -33,7 +33,7 @@ export default async function FlockDetail({ params }: { params: Promise<{ id: st
   const delBtn = <Button variant="ghost" size="icon-xs" className="text-destructive" aria-label={t("common.delete")}><Trash2 /></Button>;
   return (
     <div className="space-y-6">
-      <PageHeader title={f.flockName} subtitle={`${enumLabel(f.flockType, lang)} · ${f.breed} · ${f.shed.shedName} · ${t("flocks.intakeOn", { date: fmtDate(f.intakeDate) })}`}>
+      <PageHeader title={f.flockName} subtitle={`${enumLabel(f.flockType, lang)} · ${f.breed} · ${f.shed.shedName} · ${t("flocks.intakeOn", { date: fmtDateDisplay(f.intakeDate) })}`}>
         <ToneBadge tone={statusTone(f.status)}>{enumLabel(f.status, lang)}</ToneBadge>
         {canWrite && <>
           <DailyLogDialog flocks={opt} flockId={f.id} trigger={<Button><ClipboardPlus />{t("logs.form.title")}</Button>} />
@@ -58,14 +58,14 @@ export default async function FlockDetail({ params }: { params: Promise<{ id: st
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="py-0 gap-0"><CardHeader className="py-4"><CardTitle>{t("flocks.recentLogs")}</CardTitle></CardHeader>
           <Table><TableHeader><TableRow><TableHead>{t("common.date")}</TableHead><TableHead>{t("logs.feedKg")}</TableHead><TableHead>{t("logs.waterL")}</TableHead>{isLayer ? <><TableHead>{t("logs.eggs")}</TableHead><TableHead>{t("logs.broken")}</TableHead></> : <TableHead>{t("common.notes")}</TableHead>}<TableHead /></TableRow></TableHeader>
-            <TableBody>{logs.map((l) => <TableRow key={l.id}><TableCell className="tabular" dir="ltr">{fmtDate(l.date)}</TableCell><TableCell className="tabular">{l.feedConsumedKg}</TableCell><TableCell className="tabular">{l.waterConsumedL ?? t("common.dash")}</TableCell>
+            <TableBody>{logs.map((l) => <TableRow key={l.id}><TableCell className="tabular" dir="ltr">{fmtDateDisplay(l.date)}</TableCell><TableCell className="tabular">{l.feedConsumedKg}</TableCell><TableCell className="tabular">{l.waterConsumedL ?? t("common.dash")}</TableCell>
               {isLayer ? <><TableCell className="tabular">{l.eggsCollected}</TableCell><TableCell className="tabular">{l.eggsBroken}</TableCell></> : <TableCell className="max-w-40 truncate text-muted-foreground">{l.notes ?? ""}</TableCell>}
               <TableCell className="text-end whitespace-nowrap">{canWrite && <><DailyLogDialog flocks={opt} log={l} trigger={editBtn} />
-                <ConfirmButton title={t("logs.deleteTitle")} description={t("logs.deleteDesc", { date: fmtDate(l.date), flock: f.flockName })} action={deleteDailyLogAction.bind(null, l.id)} trigger={delBtn} /></>}</TableCell></TableRow>)}
+                <ConfirmButton title={t("logs.deleteTitle")} description={t("logs.deleteDesc", { date: fmtDateDisplay(l.date), flock: f.flockName })} action={deleteDailyLogAction.bind(null, l.id)} trigger={delBtn} /></>}</TableCell></TableRow>)}
               {logs.length === 0 && <TableRow><TableCell colSpan={7}><Empty>{t("flocks.noLogs")}</Empty></TableCell></TableRow>}</TableBody></Table></Card>
         <Card className="py-0 gap-0"><CardHeader className="py-4"><CardTitle>{t("flocks.movements")}</CardTitle></CardHeader>
           <Table><TableHeader><TableRow><TableHead>{t("common.date")}</TableHead><TableHead>{t("common.type")}</TableHead><TableHead>{t("mov.qty")}</TableHead><TableHead>{t("common.cause")}</TableHead><TableHead /></TableRow></TableHeader>
-            <TableBody>{movements.map((m) => <TableRow key={m.id}><TableCell className="tabular" dir="ltr">{fmtDate(m.date)}</TableCell><TableCell><ToneBadge tone={movementTone(m.movementType)}>{enumLabel(m.movementType, lang)}</ToneBadge></TableCell>
+            <TableBody>{movements.map((m) => <TableRow key={m.id}><TableCell className="tabular" dir="ltr">{fmtDateDisplay(m.date)}</TableCell><TableCell><ToneBadge tone={movementTone(m.movementType)}>{enumLabel(m.movementType, lang)}</ToneBadge></TableCell>
               <TableCell className="tabular">{m.quantity}</TableCell><TableCell>{m.cause ? enumLabel(m.cause, lang) : t("common.dash")}</TableCell>
               <TableCell className="text-end whitespace-nowrap">{canWrite && <><MovementDialog flocks={opt} movement={m} trigger={editBtn} />
                 <ConfirmButton title={t("mov.deleteTitle")} description={t("mov.deleteDesc", { n: m.quantity, flock: f.flockName })} action={deleteMovementAction.bind(null, m.id)} trigger={delBtn} /></>}</TableCell></TableRow>)}

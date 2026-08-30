@@ -7,7 +7,7 @@ import { ConfirmButton } from "@/components/ConfirmButton";
 import { deleteMovementAction } from "@/lib/actions";
 import { enumLabel } from "@/lib/i18n";
 import { getT } from "@/lib/locale";
-import { fmtDate } from "@/lib/format";
+import { fmtDateDisplay } from "@/lib/format";
 import { ArrowLeftRight, Pencil, Trash2 } from "lucide-react";
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export default async function MovementsPage() {
         <Table>
           <TableHeader><TableRow>{head.map((h, i) => <TableHead key={i}>{h}</TableHead>)}</TableRow></TableHeader>
           <TableBody>
-            {rows.map((m) => <TableRow key={m.id}><TableCell className="tabular" dir="ltr">{fmtDate(m.date)}</TableCell><TableCell className="font-medium">{m.flock.flockName}</TableCell>
+            {rows.map((m) => <TableRow key={m.id}><TableCell className="tabular" dir="ltr">{fmtDateDisplay(m.date)}</TableCell><TableCell className="font-medium">{m.flock.flockName}</TableCell>
               <TableCell><ToneBadge tone={movementTone(m.movementType)}>{enumLabel(m.movementType, lang)}</ToneBadge></TableCell>
               <TableCell className="tabular">{m.quantity}</TableCell><TableCell>{m.cause ? enumLabel(m.cause, lang) : t("common.dash")}</TableCell><TableCell className="tabular">{m.averageWeightG ?? t("common.dash")}</TableCell><TableCell className="max-w-48 truncate text-muted-foreground">{m.notes ?? ""}</TableCell>
               <TableCell className="text-end whitespace-nowrap">{m.flock.status === "ACTIVE" && <><MovementDialog flocks={flocks} movement={m} trigger={<Button variant="ghost" size="icon-xs" aria-label={t("common.edit")}><Pencil /></Button>} />

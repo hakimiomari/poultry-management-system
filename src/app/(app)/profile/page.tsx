@@ -8,7 +8,7 @@ import { EditProfileDialog, ChangePasswordDialog } from "@/components/forms/Prof
 import { enumLabel, type TKey } from "@/lib/i18n";
 import { getT } from "@/lib/locale";
 import { PERMISSIONS, type Role } from "@/lib/enums";
-import { fmtDate } from "@/lib/format";
+import { fmtDateDisplay } from "@/lib/format";
 import { Pencil, KeyRound } from "lucide-react";
 export const dynamic = "force-dynamic";
 
@@ -31,7 +31,7 @@ export default async function ProfilePage() {
             <div className="flex size-20 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">{initials(user.fullName)}</div>
             <div><div className="text-lg font-semibold">{user.fullName}</div><div className="text-sm text-muted-foreground" dir="ltr">{user.phone}</div></div>
             <div className="flex gap-2"><ToneBadge tone="green">{enumLabel(user.role, lang)}</ToneBadge><ToneBadge>{enumLabel(user.language, lang)}</ToneBadge></div>
-            <div className="text-xs text-muted-foreground">{t("profile.memberSince", { date: fmtDate(user.createdAt) })}</div>
+            <div className="text-xs text-muted-foreground">{t("profile.memberSince", { date: fmtDateDisplay(user.createdAt) })}</div>
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">

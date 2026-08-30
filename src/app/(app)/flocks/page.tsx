@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FlockDialog } from "@/components/forms/FlockForm";
 import { enumLabel } from "@/lib/i18n";
 import { getT } from "@/lib/locale";
-import { fmtDate, fmtNum } from "@/lib/format";
+import { fmtDateDisplay, fmtNum } from "@/lib/format";
 import { Plus, Pencil } from "lucide-react";
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,7 @@ export default async function FlocksPage() {
               <TableRow key={f.id}>
                 <TableCell><Link href={`/flocks/${f.id}`} className="font-semibold text-primary hover:underline">{f.flockName}</Link></TableCell>
                 <TableCell><ToneBadge tone={typeTone(f.flockType)}>{enumLabel(f.flockType, lang)}</ToneBadge> <span className="text-muted-foreground">{f.breed}</span></TableCell>
-                <TableCell>{f.shed.shedName}</TableCell><TableCell className="tabular" dir="ltr">{fmtDate(f.intakeDate)}</TableCell>
+                <TableCell>{f.shed.shedName}</TableCell><TableCell className="tabular" dir="ltr">{fmtDateDisplay(f.intakeDate)}</TableCell>
                 <TableCell className="tabular">{ageInDays(f.intakeDate, f.closedAt ?? new Date())} {t("common.days")}</TableCell>
                 <TableCell className="tabular">{fmtNum(currentQuantity(f.initialQuantity, f.birdMovements))} <span className="text-muted-foreground">/ {fmtNum(f.initialQuantity)}</span></TableCell>
                 <TableCell className={`tabular ${m > 5 ? "font-semibold text-destructive" : ""}`}>{m.toFixed(2)}%</TableCell>

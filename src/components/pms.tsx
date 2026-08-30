@@ -12,7 +12,7 @@ export const Kpi = ({ label, value, sub, icon, tone = "default" }: { label: stri
       {icon && <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg [&>svg]:size-5", bg)}>{icon}</div>}
       <div className="min-w-0 flex-1">
         <div className="truncate text-xs font-medium text-muted-foreground">{label}</div>
-        <div className={cn("tabular mt-0.5 whitespace-nowrap text-xl font-semibold leading-tight md:text-2xl", color)}>{value}</div>
+        <div className={cn("tabular mt-0.5 text-xl font-semibold leading-tight md:text-2xl", color)}>{value}</div>
         {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
       </div>
     </CardContent></Card>
