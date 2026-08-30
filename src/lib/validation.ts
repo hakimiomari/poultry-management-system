@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FLOCK_TYPES, MOVEMENT_CAUSES, MOVEMENT_TYPES, SHED_STATUSES, SHED_TYPES } from "./enums";
+import { CONTACT_TYPES, FLOCK_TYPES, HEALTH_METHODS, HEALTH_TYPES, MOVEMENT_CAUSES, MOVEMENT_TYPES, PAYMENT_STATUSES, SHED_STATUSES, SHED_TYPES, TX_CATEGORIES, TX_TYPES, UNITS } from "./enums";
 
 const dateStr = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD");
 
@@ -69,4 +69,38 @@ export const userAdminSchema = z.object({
   language: z.enum(["EN", "FA_DARI", "PS_PASHTO"]).default("EN"),
   password: z.string().min(6).optional(), // required on create, optional (reset) on edit
   isActive: z.coerce.boolean().default(true),
+});
+
+export const transactionSchema = z.object({
+  type: z.enum(TX_TYPES),
+  category: z.enum(TX_CATEGORIES),
+  date: dateStr,
+  quantity: z.coerce.number().positive().optional(),
+  unit: z.enum(UNITS).optional(),
+  unitPriceAfn: z.coerce.number().min(0).optional(),
+  amountAfn: z.coerce.number().min(0).optional(), // derived from quantity × unit price when omitted
+  flockId: z.string().uuid().optional(),
+  contactId: z.string().uuid().optional(),
+  paymentStatus: z.enum(PAYMENT_STATUSES).default("PAID"),
+  amountPaidAfn: z.coerce.number().min(0).optional(),
+  dueDate: dateStr.optional(),
+  description: z.string().max(500).optional(),
+});
+export const contactSchema = z.object({
+  name: z.string().min(2).max(80),
+  phone: z.string().max(20).regex(/^[0-9+ ]*$/, "Digits only").optional(),
+  address: z.string().max(200).optional(),
+  contactType: z.enum(CONTACT_TYPES),
+  notes: z.string().max(500).optional(),
+});
+export const healthLogSchema = z.object({
+  flockId: z.string().uuid(),
+  type: z.enum(HEALTH_TYPES),
+  productName: z.string().min(1).max(120),
+  scheduledDate: dateStr,
+  administeredDate: dateStr.optional(),
+  method: z.enum(HEALTH_METHODS).optional(),
+  contactId: z.string().uuid().optional(),
+  costAfn: z.coerce.number().min(0).optional(),
+  notes: z.string().max(1000).optional(),
 });

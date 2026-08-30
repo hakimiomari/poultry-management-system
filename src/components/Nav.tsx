@@ -2,9 +2,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Bird, Warehouse, ClipboardList, ArrowLeftRight, Users, UserCircle } from "lucide-react";
+import { LayoutDashboard, Bird, Warehouse, ClipboardList, ArrowLeftRight, Users, UserCircle, Wallet, Handshake, Stethoscope } from "lucide-react";
 
-const ICONS = { dashboard: LayoutDashboard, flocks: Bird, sheds: Warehouse, logs: ClipboardList, movements: ArrowLeftRight, users: Users, profile: UserCircle } as const;
+const ICONS = { dashboard: LayoutDashboard, flocks: Bird, sheds: Warehouse, logs: ClipboardList, movements: ArrowLeftRight, users: Users, profile: UserCircle, finance: Wallet, contacts: Handshake, health: Stethoscope } as const;
 export type NavItem = { href: string; label: string; icon: keyof typeof ICONS };
 
 export function SideNav({ items }: { items: NavItem[] }) {

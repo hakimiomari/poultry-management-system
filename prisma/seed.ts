@@ -10,7 +10,7 @@ let seed = 42; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return
 const ri = (min: number, max: number) => Math.floor(min + rnd() * (max - min + 1));
 
 async function main() {
-  await prisma.auditLog.deleteMany(); await prisma.dailyLog.deleteMany(); await prisma.birdMovement.deleteMany();
+  await prisma.auditLog.deleteMany(); await prisma.eggStockMovement.deleteMany(); await prisma.contact.deleteMany(); await prisma.dailyLog.deleteMany(); await prisma.birdMovement.deleteMany();
   await prisma.healthLog.deleteMany(); await prisma.weightSample.deleteMany(); await prisma.transaction.deleteMany();
   await prisma.flock.deleteMany(); await prisma.shed.deleteMany(); await prisma.user.deleteMany();
   await prisma.breedStandard.deleteMany(); await prisma.setting.deleteMany();
@@ -70,6 +70,31 @@ async function main() {
     const sched = day(-29 + d - 1); const done = sched < day(0);
     await prisma.healthLog.create({ data: { flockId: broiler.id, scheduledDate: sched, administeredDate: done ? sched : null, type: "VACCINE", productName: name, method, status: done ? "DONE" : "PENDING" } });
   }
-  console.log(`Seeded: ${users.length} users, 3 sheds, 2 flocks, 60 daily logs. Login 0700000001 / owner123`);
+
+  // ── Contacts, purchases, sales, vet visits (Phase 3) ──
+  const mk = (data: Parameters<typeof prisma.contact.create>[0]["data"]) => prisma.contact.create({ data });
+  const feedCo = await mk({ name: "Kabul Feed Mills", phone: "0700111222", contactType: "FEED_SUPPLIER", address: "Kabul" });
+  const chickCo = await mk({ name: "Afghan Hatchery", phone: "0700333444", contactType: "CHICK_SUPPLIER" });
+  const medCo = await mk({ name: "Pamir Vet Pharma", phone: "0700555666", contactType: "MEDICINE_SUPPLIER" });
+  const equipCo = await mk({ name: "Farm Equipment Store", contactType: "EQUIPMENT_SUPPLIER" });
+  const vet = await mk({ name: "Dr. Nadia (Vet)", phone: "0700000004", contactType: "VETERINARIAN" });
+  const eggBuyer = await mk({ name: "Bazaar Egg Traders", phone: "0700777888", contactType: "EGG_BUYER" });
+  const meatBuyer = await mk({ name: "City Poultry Market", contactType: "MEAT_BUYER" });
+  const tx = (data: Parameters<typeof prisma.transaction.create>[0]["data"]) => prisma.transaction.create({ data });
+  await tx({ type: "EXPENSE", category: "CHICKS", date: day(-29), quantity: 4500, unit: "PIECE", unitPriceAfn: 55, amountAfn: 4500 * 55, amountPaidAfn: 4500 * 55, paymentStatus: "PAID", flockId: broiler.id, contactId: chickCo.id, description: "Cobb 500 day-old chicks" });
+  for (const w of [0, 1, 2, 3]) await tx({ type: "EXPENSE", category: "FEED", date: day(-28 + w * 7), quantity: 60, unit: "BAG", unitPriceAfn: 2400, amountAfn: 144000, amountPaidAfn: w === 3 ? 0 : 144000, paymentStatus: w === 3 ? "CREDIT" : "PAID", dueDate: w === 3 ? day(7) : null, contactId: feedCo.id, description: ["Starter", "Starter", "Grower", "Grower"][w] + " feed 50 kg bags" });
+  await tx({ type: "EXPENSE", category: "VITAMINS", date: day(-20), quantity: 5, unit: "LITER", unitPriceAfn: 900, amountAfn: 4500, amountPaidAfn: 4500, paymentStatus: "PAID", contactId: medCo.id, description: "Vitamin C + electrolytes" });
+  await tx({ type: "EXPENSE", category: "EQUIPMENT", date: day(-15), quantity: 20, unit: "PIECE", unitPriceAfn: 650, amountAfn: 13000, amountPaidAfn: 6000, paymentStatus: "PARTIAL", contactId: equipCo.id, description: "Bell drinkers" });
+  await tx({ type: "EXPENSE", category: "UTILITIES", date: day(-3), amountAfn: 8200, amountPaidAfn: 8200, paymentStatus: "PAID", description: "Electricity — month" });
+  await tx({ type: "EXPENSE", category: "LABOR", date: day(-1), amountAfn: 24000, amountPaidAfn: 24000, paymentStatus: "PAID", description: "Worker salaries" });
+  for (let i = 27; i >= 1; i -= 3) { const trays = 200 + ri(0, 40); const credit = i % 9 === 0;
+    const sale = await tx({ type: "INCOME", category: "EGG_SALE", date: day(-i), quantity: trays, unit: "TRAY", unitPriceAfn: 210, amountAfn: trays * 210, amountPaidAfn: credit ? Math.round(trays * 210 * 0.5) : trays * 210, paymentStatus: credit ? "PARTIAL" : "PAID", flockId: layer.id, contactId: eggBuyer.id, description: "Eggs (trays of 30)" });
+    await prisma.eggStockMovement.create({ data: { date: day(-i), movementType: "SALE", quantityEggs: trays * 30, flockId: layer.id, linkedTransactionId: sale.id } }); }
+  await tx({ type: "INCOME", category: "MANURE_SALE", date: day(-6), quantity: 2, unit: "OTHER", unitPriceAfn: 3500, amountAfn: 7000, amountPaidAfn: 7000, paymentStatus: "PAID", contactId: meatBuyer.id, description: "Litter / manure, 2 truckloads" });
+  const visitTx = await tx({ type: "EXPENSE", category: "VET_VISIT", date: day(-17), quantity: 1, unit: "VISIT", unitPriceAfn: 2500, amountAfn: 2500, amountPaidAfn: 2500, paymentStatus: "PAID", flockId: broiler.id, contactId: vet.id, description: "Mortality spike investigation" });
+  await prisma.healthLog.create({ data: { flockId: broiler.id, type: "VET_VISIT", productName: "Mortality spike investigation", scheduledDate: day(-17), administeredDate: day(-17), status: "DONE", contactId: vet.id, transactionId: visitTx.id, notes: "Suspected E. coli; antibiotic course 5 days, improve ventilation." } });
+  await prisma.healthLog.create({ data: { flockId: layer.id, type: "CHECKUP", productName: "Monthly flock check-up", scheduledDate: day(5), status: "PENDING", contactId: vet.id } });
+  await prisma.healthLog.create({ data: { flockId: broiler.id, type: "MEDICATION", productName: "Enrofloxacin 10% (5 days)", scheduledDate: day(-16), administeredDate: day(-16), method: "WATER", status: "DONE" } });
+  console.log(`Seeded: ${users.length} users, 3 sheds, 2 flocks, 60 daily logs, 7 contacts, transactions & vet visits. Login 0700000001 / owner123`);
 }
 main().finally(() => prisma.$disconnect());

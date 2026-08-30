@@ -12,6 +12,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     { href: "/dashboard", label: t("nav.dashboard"), icon: "dashboard" }, { href: "/flocks", label: t("nav.flocks"), icon: "flocks" },
     { href: "/sheds", label: t("nav.sheds"), icon: "sheds" }, { href: "/daily-logs", label: t("nav.dailyLogs"), icon: "logs" },
     { href: "/movements", label: t("nav.movements"), icon: "movements" },
+    ...(can(user.role, "health") ? [{ href: "/health", label: t("nav.health"), icon: "health" as const }] : []),
+    ...(can(user.role, "finance:read") ? [{ href: "/finance", label: t("nav.finance"), icon: "finance" as const }, { href: "/contacts", label: t("nav.contacts"), icon: "contacts" as const }] : []),
     ...(can(user.role, "admin") ? [{ href: "/users", label: t("nav.users"), icon: "users" as const }] : []),
     { href: "/profile", label: t("nav.profile"), icon: "profile" },
   ];

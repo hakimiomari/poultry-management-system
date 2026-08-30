@@ -10,7 +10,7 @@
 [![Prisma](https://img.shields.io/badge/Prisma-6-2d3748?logo=prisma&logoColor=white)](https://www.prisma.io)
 [![Tailwind](https://img.shields.io/badge/Tailwind_CSS-4-06b6d4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-v4-111111?logo=shadcnui&logoColor=white)](https://ui.shadcn.com)
-[![Tests](https://img.shields.io/badge/tests-16_passing-2f6b3a?logo=vitest&logoColor=white)](#-testing)
+[![Tests](https://img.shields.io/badge/tests-22_passing-2f6b3a?logo=vitest&logoColor=white)](#-testing)
 [![i18n](https://img.shields.io/badge/i18n-EN_%7C_%D8%AF%D8%B1%DB%8C_%7C_%D9%BE%DA%9A%D8%AA%D9%88-d9a441)](#-localization)
 
 **A farm-management system for broiler and layer poultry operations — built for phones in the shed, in your language.**
@@ -109,6 +109,24 @@ npm run dev          # → http://localhost:3000
 <tr>
 <td valign="top">
 
+### 💰 Finance & contacts
+- Purchases: feed, chicks, medicine, vitamins, equipment, vet, labour, utilities…
+- Sales: eggs, birds/meat, manure — egg and bird sales update stock automatically
+- Cash, credit or partial payment with due dates; receivables & payables at a glance
+- Suppliers, buyers and vets with computed balances
+
+</td>
+<td valign="top">
+
+### 🩺 Health
+- Vet visits and check-ups per flock, with findings and cost (auto-posted as an expense)
+- Vaccine, medication and treatment records with pending / done / overdue status
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
 ### 👥 Users & roles
 - Owner, Farm manager, Worker, Veterinarian, Accountant
 - Owner manages accounts: create, edit, reset password, deactivate
@@ -201,8 +219,10 @@ Built phase by phase from [`SPEC.md`](SPEC.md); each phase is a shippable slice.
 
 - [x] **Phase 1 — Core records:** users & roles, sheds, flocks, daily logs, bird movements, dashboard, alerts #3 & #13
 - [x] **Localization:** English · Dari · Pashto, RTL, dual calendar
-- [ ] **Phase 2 — Health:** vaccination program templates, health logs, vaccination alerts
-- [ ] **Phase 3 — Finance & inventory:** transactions, suppliers/buyers on credit, feed and egg stock, low-stock alerts
+- [x] **Health (part of Phase 2):** vet visits & check-ups with costs, medication/vaccine records, mark-done
+- [ ] **Phase 2 — remaining:** vaccination program templates, vaccination due/missed alerts
+- [x] **Phase 3 — Finance:** purchases & sales with quantity × unit price, cash/credit/partial payment, suppliers & buyers with balances, egg/bird sales linked to stock movements
+- [ ] **Phase 3 — remaining:** feed stock levels, low-stock & run-out alerts, overdue receivables alert
 - [ ] **Phase 4 — Analytics:** breed-standard curves, FCR drift, cost per kg / per egg, batch closure report
 - [ ] **Phase 5 — Environment & polish:** temperature/humidity logs, heat & cold stress alerts, PDF/Excel export, offline sync
 - [ ] **Phase 6 — AI assistant:** natural-language farm Q&A, anomaly narratives, voice data entry, weekly advisory report
