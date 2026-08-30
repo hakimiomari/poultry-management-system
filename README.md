@@ -15,7 +15,7 @@
 
 **A farm-management system for broiler and layer poultry operations — built for phones in the shed, in your language.**
 
-[Quick start](#-quick-start) · [Features](#-features) · [Screenshots](#-screenshots) · [Architecture](#-architecture) · [Roadmap](#-roadmap)
+[Quick start](#-quick-start) · [Features](#-features) · [Finance](#-finance) · [Screenshots](#-screenshots) · [Architecture](#-architecture) · [Roadmap](#-roadmap)
 
 </div>
 
@@ -144,6 +144,36 @@ npm run dev          # → http://localhost:3000
 </td>
 </tr>
 </table>
+
+---
+
+## 💰 Finance
+
+Money in, money out, and who still owes whom — without a separate accounting app.
+
+<div align="center">
+<img src="docs/screenshots/finance-light.png" alt="Finance page: monthly income, expenses, net, receivables and payables, category breakdown and the transaction ledger" width="100%" />
+</div>
+
+| | |
+|---|---|
+| **Purchases** | Feed, chicks, medicine, vitamins, equipment, vet visits, labour, utilities, transport — each as quantity × unit (kg, bag, piece, tray, dozen, litre, box, visit) × unit price, or a flat amount |
+| **Sales** | Eggs, birds / meat, manure, equipment, other. **Egg sales draw down egg stock; bird sales record a SALE movement**, so the flock population is always right |
+| **Payment** | Paid, credit, or partial with amount paid and due date. The page shows **receivables** (unpaid sales) and **payables** (unpaid purchases) at a glance |
+| **Suppliers & buyers** | Every transaction can be tied to a contact; contact cards show a computed balance — *owes us*, *we owe*, or *settled* |
+| **Per flock** | Attach a purchase or sale to a flock (or leave it as a general farm cost) — the basis for cost-per-bird and cost-per-egg in Phase 4 |
+| **Vet costs** | A paid vet visit or check-up recorded in **Health** posts its own expense automatically and stays linked |
+| **Roles** | Owner and Accountant record and edit; Farm manager sees finance read-only; Workers don't see it at all |
+
+<div align="center">
+
+| Suppliers & buyers | Health — vet visits & check-ups |
+|:--:|:--:|
+| ![](docs/screenshots/contacts-light.png) | ![](docs/screenshots/health-light.png) |
+
+<img src="docs/screenshots/purchase-dialog-light.png" alt="Record purchase dialog" width="70%" />
+
+</div>
 
 ---
 
