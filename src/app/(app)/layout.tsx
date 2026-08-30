@@ -27,7 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </header>
       <div className="flex min-w-0 flex-1"><SideNav items={items} /><main className="w-full min-w-0 flex-1 px-4 py-6 pb-24 lg:px-8 lg:pb-8">{children}</main></div>
-      <BottomNav items={items} />
+      <BottomNav items={items} moreLabel={t("nav.more")} />
     </div>
   );
 }

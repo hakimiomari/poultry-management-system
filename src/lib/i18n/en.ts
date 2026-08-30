@@ -3,7 +3,7 @@ const en = {
   // app / nav
   "app.title": "Poultry Management System", "app.short": "PMS",
   "nav.dashboard": "Dashboard", "nav.flocks": "Flocks", "nav.sheds": "Sheds", "nav.dailyLogs": "Daily Logs",
-  "nav.movements": "Bird Movements", "nav.users": "Users", "nav.profile": "Profile", "nav.logout": "Logout",
+  "nav.movements": "Bird Movements", "nav.users": "Users", "nav.more": "More", "nav.profile": "Profile", "nav.logout": "Logout",
   // auth
   "auth.login": "Login", "auth.signingIn": "Signing in…", "auth.phone": "Phone", "auth.password": "Password",
   "auth.invalid": "Invalid phone or password", "auth.enterBoth": "Enter phone and password",

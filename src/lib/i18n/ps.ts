@@ -3,7 +3,7 @@ import type en from "./en";
 const ps: Record<keyof typeof en, string> = {
   "app.title": "د چرګانو د فارم د مدیریت سیستم", "app.short": "PMS",
   "nav.dashboard": "ډاشبورډ", "nav.flocks": "رمې", "nav.sheds": "شیډونه", "nav.dailyLogs": "ورځنی ثبت",
-  "nav.movements": "د مرغانو وتل", "nav.users": "کارونکي", "nav.profile": "پروفایل", "nav.logout": "له سیستم وتل",
+  "nav.movements": "د مرغانو وتل", "nav.users": "کارونکي", "nav.more": "نور", "nav.profile": "پروفایل", "nav.logout": "له سیستم وتل",
   "auth.login": "ننوتل", "auth.signingIn": "ننوتل روان دي…", "auth.phone": "د تلیفون شمېره", "auth.password": "پټنوم",
   "auth.invalid": "د تلیفون شمېره یا پټنوم سم نه دی", "auth.enterBoth": "د تلیفون شمېره او پټنوم ولیکئ",
   "auth.tagline": "هر مرغه شمېرل شوی.\nهره ورځ ثبت شوې.",
