@@ -22,5 +22,5 @@ Source-of-truth spec: `SPEC.md` (v2.0). Read it before changing data models, for
 - Demo login: phone `0700000001` / password `owner123` (see `prisma/seed.ts`)
 
 ## Roadmap
-Phase 1 (done): users/auth, sheds, flocks, daily logs, bird movements, dashboard.
+Phase 1 (done): users/auth, sheds, flocks, daily logs, bird movements, dashboard. Finance (done): transactions (`/finance`), contacts, vet visits/health logs (`/health`); egg/bird sales sync `egg_stock_movements`/`bird_movements` via `linkedTransactionId`, vet-visit cost syncs a `transactions` row via `health_logs.transactionId`.
 Next phases per SPEC.md Part F.

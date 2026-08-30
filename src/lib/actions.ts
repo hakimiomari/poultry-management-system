@@ -9,7 +9,7 @@ import { login as doLogin, logout as doLogout, requireUser } from "./auth";
 import { birdMovementSchema, dailyLogSchema, flockSchema, formToObject, loginSchema, shedSchema } from "./validation";
 import { validateMovement, validateShedCapacity, currentQuantity } from "./domain/population";
 import { shedOccupancy } from "./services/flocks";
-import { toDate } from "./format";
+import { toDate, todayStr } from "./format";
 import { getT } from "./locale";
 import type { TKey, TFn } from "./i18n";
 import type { RuleError } from "./domain/population";
@@ -204,4 +204,132 @@ export async function toggleUserActiveAction(id: string): Promise<ActionState> {
   const user = await prisma.user.update({ where: { id }, data: { isActive: !old.isActive } });
   await audit(admin.id, "users", id, "UPDATE", { isActive: old.isActive }, { isActive: user.isActive });
   revalidatePath("/users"); return { ok: true };
+}
+
+/* ── Finance: sales & purchases ────────────────────────────────── */
+import { contactSchema, healthLogSchema, transactionSchema } from "./validation";
+import { lineAmount, normalisePayment } from "./domain/finance";
+import { getSettingNumber } from "./settings";
+
+const refreshFinance = (flockId?: string | null) => { for (const p of ["/finance", "/contacts", "/health", "/dashboard", "/movements"]) revalidatePath(p); if (flockId) revalidatePath(`/flocks/${flockId}`); };
+const eggsFromUnit = async (qty: number, unit?: string | null) => unit === "TRAY" ? Math.round(qty * (await getSettingNumber("eggs.trayCount"))) : unit === "DOZEN" ? Math.round(qty * 12) : Math.round(qty);
+
+/** Keep egg/bird stock movements in sync with an INCOME transaction. */
+async function syncSaleMovements(txId: string, d: { type: string; category: string; date: Date; quantity?: number | null; unit?: string | null; flockId?: string | null; unitPriceAfn?: number | null }, t: TFn): Promise<string | null> {
+  const wantBird = d.type === "INCOME" && d.category === "BIRD_SALE" && !!d.quantity && !!d.flockId;
+  const wantEgg = d.type === "INCOME" && d.category === "EGG_SALE" && !!d.quantity;
+  const existingBird = await prisma.birdMovement.findUnique({ where: { linkedTransactionId: txId } });
+  const existingEgg = await prisma.eggStockMovement.findUnique({ where: { linkedTransactionId: txId } });
+  if (wantBird) {
+    const qty = d.quantity!; if (!Number.isInteger(qty)) return t("err.birdSaleQty");
+    const flock = await prisma.flock.findUnique({ where: { id: d.flockId! }, include: { birdMovements: true } });
+    if (!flock) return t("err.flockInactive");
+    const v = validateMovement(flock.initialQuantity, flock.birdMovements.filter((m) => m.id !== existingBird?.id), qty);
+    if (!v.ok) return t(v.key, v.params);
+    const data = { flockId: d.flockId!, date: d.date, movementType: "SALE", quantity: qty, cause: "MARKET_READY", linkedTransactionId: txId, notes: "From sale" };
+    if (existingBird) await prisma.birdMovement.update({ where: { id: existingBird.id }, data }); else await prisma.birdMovement.create({ data });
+  } else if (existingBird) await prisma.birdMovement.delete({ where: { id: existingBird.id } });
+  if (wantEgg) {
+    const data = { date: d.date, movementType: "SALE", quantityEggs: await eggsFromUnit(d.quantity!, d.unit), flockId: d.flockId ?? null, linkedTransactionId: txId };
+    if (existingEgg) await prisma.eggStockMovement.update({ where: { id: existingEgg.id }, data }); else await prisma.eggStockMovement.create({ data });
+  } else if (existingEgg) await prisma.eggStockMovement.delete({ where: { id: existingEgg.id } });
+  return null;
+}
+
+export async function saveTransactionAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireUser("finance"); const { t } = await getT();
+  const id = (fd.get("id") as string) || null;
+  const p = transactionSchema.safeParse(formToObject(fd));
+  if (!p.success) return { error: issues(t, p.error) };
+  const d = p.data;
+  const amount = lineAmount(d.quantity, d.unitPriceAfn, d.amountAfn);
+  if (amount <= 0) return { error: t("err.amountRequired") };
+  if (d.type === "INCOME" && d.category === "BIRD_SALE" && d.quantity && !d.flockId) return { error: t("err.saleNeedsFlock") };
+  const pay = normalisePayment(amount, d.paymentStatus, d.amountPaidAfn);
+  const data = { type: d.type, category: d.category, date: toDate(d.date), quantity: d.quantity ?? null, unit: d.unit ?? null, unitPriceAfn: d.unitPriceAfn ?? null, amountAfn: amount,
+    flockId: d.flockId ?? null, contactId: d.contactId ?? null, paymentStatus: pay.status, amountPaidAfn: pay.paid, dueDate: d.dueDate ? toDate(d.dueDate) : null, description: d.description ?? null };
+  const old = id ? await prisma.transaction.findUnique({ where: { id } }) : null;
+  if (id && !old) return { error: t("err.notFound") };
+  const tx = old ? await prisma.transaction.update({ where: { id: id! }, data }) : await prisma.transaction.create({ data });
+  const err = await syncSaleMovements(tx.id, data, t);
+  if (err) { if (!old) await prisma.transaction.delete({ where: { id: tx.id } }); else await prisma.transaction.update({ where: { id: tx.id }, data: old }); return { error: err }; }
+  await audit(user.id, "transactions", tx.id, old ? "UPDATE" : "CREATE", old, tx);
+  refreshFinance(data.flockId); return { ok: true };
+}
+
+export async function deleteTransactionAction(id: string): Promise<ActionState> {
+  const user = await requireUser("finance"); const { t } = await getT();
+  const old = await prisma.transaction.findUnique({ where: { id } });
+  if (!old) return { error: t("err.notFound") };
+  await prisma.birdMovement.deleteMany({ where: { linkedTransactionId: id } });
+  await prisma.eggStockMovement.deleteMany({ where: { linkedTransactionId: id } });
+  await prisma.healthLog.updateMany({ where: { transactionId: id }, data: { transactionId: null } });
+  await prisma.transaction.delete({ where: { id } });
+  await audit(user.id, "transactions", id, "DELETE", old, null);
+  refreshFinance(old.flockId); return { ok: true };
+}
+
+/* ── Contacts ──────────────────────────────────────────────────── */
+export async function saveContactAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireUser("finance"); const { t } = await getT();
+  const id = (fd.get("id") as string) || null;
+  const p = contactSchema.safeParse(formToObject(fd));
+  if (!p.success) return { error: issues(t, p.error) };
+  const data = { ...p.data, phone: p.data.phone ?? null, address: p.data.address ?? null, notes: p.data.notes ?? null };
+  const old = id ? await prisma.contact.findUnique({ where: { id } }) : null;
+  const c = old ? await prisma.contact.update({ where: { id: id! }, data }) : await prisma.contact.create({ data });
+  await audit(user.id, "contacts", c.id, old ? "UPDATE" : "CREATE", old, c);
+  refreshFinance(); return { ok: true };
+}
+export async function deleteContactAction(id: string): Promise<ActionState> {
+  const user = await requireUser("finance"); const { t } = await getT();
+  if (await prisma.transaction.count({ where: { contactId: id } })) return { error: t("err.contactHasTx") };
+  await prisma.healthLog.updateMany({ where: { contactId: id }, data: { contactId: null } });
+  const old = await prisma.contact.delete({ where: { id } });
+  await audit(user.id, "contacts", id, "DELETE", old, null);
+  refreshFinance(); return { ok: true };
+}
+
+/* ── Health: vet visits, check-ups, vaccines ───────────────────── */
+export async function saveHealthLogAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireUser("health"); const { t } = await getT();
+  const id = (fd.get("id") as string) || null;
+  const p = healthLogSchema.safeParse(formToObject(fd));
+  if (!p.success) return { error: issues(t, p.error) };
+  const d = p.data;
+  const flock = await prisma.flock.findUnique({ where: { id: d.flockId } });
+  if (!flock) return { error: t("err.flockInactive") };
+  const old = id ? await prisma.healthLog.findUnique({ where: { id } }) : null;
+  if (id && !old) return { error: t("err.notFound") };
+  const done = !!d.administeredDate;
+  const data = { flockId: d.flockId, type: d.type, productName: d.productName, scheduledDate: toDate(d.scheduledDate), administeredDate: done ? toDate(d.administeredDate!) : null,
+    method: d.method ?? null, contactId: d.contactId ?? null, notes: d.notes ?? null, status: done ? "DONE" : "PENDING" };
+  const log = old ? await prisma.healthLog.update({ where: { id: id! }, data }) : await prisma.healthLog.create({ data });
+  // cost → expense transaction (VET_VISIT for visits/check-ups, MEDICINE otherwise), kept in sync
+  const cost = d.costAfn ?? 0;
+  if (cost > 0) {
+    const txData = { type: "EXPENSE", category: d.type === "VET_VISIT" || d.type === "CHECKUP" ? "VET_VISIT" : "MEDICINE", date: toDate(d.administeredDate ?? d.scheduledDate), amountAfn: cost, amountPaidAfn: cost, paymentStatus: "PAID",
+      flockId: d.flockId, contactId: d.contactId ?? null, unit: "VISIT", quantity: 1, unitPriceAfn: cost, description: d.productName };
+    if (log.transactionId) await prisma.transaction.update({ where: { id: log.transactionId }, data: txData });
+    else { const tx = await prisma.transaction.create({ data: txData }); await prisma.healthLog.update({ where: { id: log.id }, data: { transactionId: tx.id } }); }
+  } else if (log.transactionId) { await prisma.healthLog.update({ where: { id: log.id }, data: { transactionId: null } }); await prisma.transaction.delete({ where: { id: log.transactionId } }); }
+  await audit(user.id, "health_logs", log.id, old ? "UPDATE" : "CREATE", old, log);
+  refreshFinance(d.flockId); return { ok: true };
+}
+export async function markHealthDoneAction(id: string): Promise<ActionState> {
+  const user = await requireUser("health"); const { t } = await getT();
+  const old = await prisma.healthLog.findUnique({ where: { id } });
+  if (!old) return { error: t("err.notFound") };
+  const log = await prisma.healthLog.update({ where: { id }, data: { status: "DONE", administeredDate: toDate(todayStr()) } });
+  await audit(user.id, "health_logs", id, "UPDATE", old, log);
+  refreshFinance(old.flockId); return { ok: true };
+}
+export async function deleteHealthLogAction(id: string): Promise<ActionState> {
+  const user = await requireUser("health"); const { t } = await getT();
+  const old = await prisma.healthLog.findUnique({ where: { id } });
+  if (!old) return { error: t("err.notFound") };
+  await prisma.healthLog.delete({ where: { id } });
+  if (old.transactionId) await prisma.transaction.delete({ where: { id: old.transactionId } });
+  await audit(user.id, "health_logs", id, "DELETE", old, null);
+  refreshFinance(old.flockId); return { ok: true };
 }

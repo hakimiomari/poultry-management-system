@@ -111,13 +111,17 @@ model HealthLog {
   flockId          String
   scheduledDate    DateTime
   administeredDate DateTime?
-  type             String    // VACCINE | MEDICATION | TREATMENT
-  productName      String
+  type             String    // VACCINE | MEDICATION | TREATMENT | VET_VISIT | CHECKUP
+  productName      String    // vaccine/medicine name, or purpose of a visit
   method           String?   // WATER | SPRAY | INJECTION | EYE_DROP | FEED
   status           String    @default("PENDING") // PENDING | DONE | MISSED
   notes            String?
+  contactId        String?   // veterinarian (contacts.contactType = VETERINARIAN)
+  transactionId    String?   @unique // expense created for a paid visit
 
-  flock Flock @relation(fields: [flockId], references: [id], onDelete: Cascade)
+  flock       Flock        @relation(fields: [flockId], references: [id], onDelete: Cascade)
+  contact     Contact?     @relation(fields: [contactId], references: [id])
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
 
   @@index([flockId, scheduledDate])
   @@map("health_logs")
@@ -128,10 +132,13 @@ model Contact {
   name                  String
   phone                 String?
   address               String?
-  contactType           String  // FEED_SUPPLIER | CHICK_SUPPLIER | MEDICINE_SUPPLIER | EGG_BUYER | MEAT_BUYER | OTHER
-  outstandingBalanceAfn Float   @default(0)
+  contactType           String  // FEED_SUPPLIER | CHICK_SUPPLIER | MEDICINE_SUPPLIER | EQUIPMENT_SUPPLIER | VETERINARIAN | EGG_BUYER | MEAT_BUYER | OTHER
+  outstandingBalanceAfn Float   @default(0) // kept for spec compatibility; UI computes balance from transactions
+  notes                 String?
+  createdAt             DateTime @default(now())
 
   transactions Transaction[]
+  healthLogs   HealthLog[]
 
   @@map("contacts")
 }
@@ -142,10 +149,14 @@ model Transaction {
   type          String   // INCOME | EXPENSE
   category      String   // FEED | CHICKS | MEDICINE | LABOR | UTILITIES | EGG_SALE | BIRD_SALE | OTHER
   amountAfn     Float
+  quantity      Float?
+  unit          String?  // KG | BAG | PIECE | TRAY | DOZEN | LITER | BOX | VISIT | OTHER
+  unitPriceAfn  Float?
   flockId       String?
   contactId     String?
   paymentStatus String   @default("PAID") // PAID | CREDIT | PARTIAL
   amountPaidAfn Float    @default(0)
+  dueDate       DateTime?
   description   String?
   createdAt     DateTime @default(now())
 
@@ -153,6 +164,9 @@ model Transaction {
   contact      Contact?           @relation(fields: [contactId], references: [id])
   birdMovement BirdMovement?
   eggMovement  EggStockMovement?
+  healthLog    HealthLog?
+
+  @@index([date])
 
   @@map("transactions")
 }
