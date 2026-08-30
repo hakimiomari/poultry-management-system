@@ -40,6 +40,9 @@ export async function getSession(): Promise<SessionUser | null> {
 export async function requireUser(permission?: string): Promise<SessionUser> {
   const u = await getSession();
   if (!u) redirect("/login");
+  // The cookie may outlive the account (reseeded DB, deleted or deactivated user): drop it and re-authenticate.
+  const row = await prisma.user.findUnique({ where: { id: u.id }, select: { isActive: true } });
+  if (!row || !row.isActive) redirect("/api/auth/logout"); // route handler may clear cookies; a Server Component may not
   if (permission && !can(u.role, permission)) redirect("/dashboard?forbidden=1");
   return u;
 }
