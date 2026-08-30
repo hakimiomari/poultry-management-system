@@ -3,7 +3,7 @@ import type en from "./en";
 const fa: Record<keyof typeof en, string> = {
   "app.title": "سیستم مدیریت مرغداری", "app.short": "PMS",
   "nav.dashboard": "داشبورد", "nav.flocks": "گله‌ها", "nav.sheds": "سالن‌ها", "nav.dailyLogs": "ثبت روزانه",
-  "nav.movements": "خروج پرندگان", "nav.users": "کاربران", "nav.more": "بیشتر", "nav.profile": "پروفایل", "nav.logout": "خروج از سیستم",
+  "nav.movements": "خروج پرندگان", "nav.users": "کاربران", "theme.label": "ظاهر", "theme.SYSTEM": "سیستم", "theme.LIGHT": "روشن", "theme.DARK": "تاریک", "nav.more": "بیشتر", "nav.profile": "پروفایل", "nav.logout": "خروج از سیستم",
   "auth.login": "ورود", "auth.signingIn": "در حال ورود…", "auth.phone": "شماره تلفن", "auth.password": "رمز عبور",
   "auth.invalid": "شماره تلفن یا رمز عبور اشتباه است", "auth.enterBoth": "شماره تلفن و رمز عبور را وارد کنید",
   "auth.tagline": "هر پرنده شمرده شده.\nهر روز ثبت شده.",

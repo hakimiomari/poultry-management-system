@@ -1,6 +1,8 @@
 // All enums (SQLite has no native enum type). Display via i18n keys, never raw.
 export const ROLES = ["OWNER", "FARM_MANAGER", "WORKER", "VETERINARIAN", "ACCOUNTANT"] as const;
 export const LANGUAGES = ["EN", "FA_DARI", "PS_PASHTO"] as const;
+export const THEMES = ["SYSTEM", "LIGHT", "DARK"] as const;
+export type Theme = (typeof THEMES)[number];
 export const SHED_TYPES = ["OPEN_SIDED", "CLOSED_ENVIRONMENT", "SEMI_CLOSED"] as const;
 export const SHED_STATUSES = ["OCCUPIED", "EMPTY", "CLEANING", "MAINTENANCE"] as const;
 export const FLOCK_TYPES = ["BROILER", "LAYER"] as const;

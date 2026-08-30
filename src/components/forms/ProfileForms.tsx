@@ -3,12 +3,12 @@ import { Field } from "./fields";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { changePasswordAction, updateProfileAction } from "@/lib/actions";
-import { LANGUAGES } from "@/lib/enums";
+import { LANGUAGES, THEMES } from "@/lib/enums";
 import { enumLabel } from "@/lib/i18n";
 import { getT } from "@/lib/locale";
 import type { ReactNode } from "react";
 
-export async function EditProfileDialog({ trigger, user }: { trigger: ReactNode; user: { fullName: string; phone: string; language: string } }) {
+export async function EditProfileDialog({ trigger, user }: { trigger: ReactNode; user: { fullName: string; phone: string; language: string; theme: string } }) {
   const { t } = await getT();
   return (
     <FormDialog trigger={trigger} title={t("profile.form.title")} description={t("profile.form.desc")} action={updateProfileAction}>
@@ -16,6 +16,7 @@ export async function EditProfileDialog({ trigger, user }: { trigger: ReactNode;
       <div className="grid grid-cols-2 gap-4">
         <Field label={t("profile.form.phone")}><Input name="phone" inputMode="tel" required defaultValue={user.phone} dir="ltr" /></Field>
         <Field label={t("profile.form.language")}><NativeSelect name="language" defaultValue={user.language}>{LANGUAGES.map((l) => <NativeSelectOption key={l} value={l}>{enumLabel(l, l)}</NativeSelectOption>)}</NativeSelect></Field>
+        <Field label={t("theme.label")} className="col-span-2"><NativeSelect name="theme" defaultValue={user.theme}>{THEMES.map((th) => <NativeSelectOption key={th} value={th}>{t(`theme.${th}` as "theme.SYSTEM")}</NativeSelectOption>)}</NativeSelect></Field>
       </div>
     </FormDialog>
   );

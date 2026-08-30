@@ -56,6 +56,7 @@ export const profileSchema = z.object({
   fullName: z.string().min(2).max(80),
   phone: z.string().min(5).max(20).regex(/^[0-9+]+$/, "Digits only"),
   language: z.enum(["EN", "FA_DARI", "PS_PASHTO"]),
+  theme: z.enum(["SYSTEM", "LIGHT", "DARK"]).default("SYSTEM"),
 });
 export const passwordSchema = z.object({
   currentPassword: z.string().min(1),

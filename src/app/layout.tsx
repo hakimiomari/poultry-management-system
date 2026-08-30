@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Vazirmatn } from "next/font/google";
 import "./globals.css";
-import { getLang } from "@/lib/locale";
+import { getLang, getTheme, themeClass } from "@/lib/locale";
 import { htmlLang, isRtl, t } from "@/lib/i18n";
 import { I18nProvider } from "@/components/I18nProvider";
 
@@ -13,9 +13,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const lang = await getLang();
+  const [lang, theme] = await Promise.all([getLang(), getTheme()]);
   return (
-    <html lang={htmlLang(lang)} dir={isRtl(lang) ? "rtl" : "ltr"} className={vazir.variable}>
+    <html lang={htmlLang(lang)} dir={isRtl(lang) ? "rtl" : "ltr"} className={`${vazir.variable} ${themeClass(theme)}`.trim()} style={theme === "SYSTEM" ? undefined : { colorScheme: theme.toLowerCase() }}>
       <body className="min-h-screen antialiased"><I18nProvider lang={lang}>{children}</I18nProvider></body>
     </html>
   );

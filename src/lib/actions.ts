@@ -5,12 +5,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "./db";
 import { audit } from "./audit";
-import { login as doLogin, logout as doLogout, requireUser } from "./auth";
+import { login as doLogin, logout as doLogout, requireUser, getSession } from "./auth";
 import { birdMovementSchema, dailyLogSchema, flockSchema, formToObject, loginSchema, shedSchema } from "./validation";
 import { validateMovement, validateShedCapacity, currentQuantity } from "./domain/population";
 import { shedOccupancy } from "./services/flocks";
 import { toDate, todayStr } from "./format";
-import { getT } from "./locale";
+import { getT, THEME_COOKIE, isTheme } from "./locale";
+import { cookies } from "next/headers";
 import type { TKey, TFn } from "./i18n";
 import type { RuleError } from "./domain/population";
 
@@ -159,8 +160,9 @@ export async function updateProfileAction(_: ActionState, fd: FormData): Promise
   if (dup && dup.id !== user.id) return { error: t("err.phoneInUse") };
   const old = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
   const updated = await prisma.user.update({ where: { id: user.id }, data: p.data });
-  await audit(user.id, "users", user.id, "UPDATE", { fullName: old.fullName, phone: old.phone, language: old.language }, p.data);
+  await audit(user.id, "users", user.id, "UPDATE", { fullName: old.fullName, phone: old.phone, language: old.language, theme: old.theme }, p.data);
   await refreshSession(updated.id);
+  (await cookies()).set(THEME_COOKIE, p.data.theme, { sameSite: "lax", path: "/", maxAge: 365 * 86400 });
   revalidatePath("/", "layout"); return { ok: true };
 }
 
@@ -332,4 +334,13 @@ export async function deleteHealthLogAction(id: string): Promise<ActionState> {
   if (old.transactionId) await prisma.transaction.delete({ where: { id: old.transactionId } });
   await audit(user.id, "health_logs", id, "DELETE", old, null);
   refreshFinance(old.flockId); return { ok: true };
+}
+
+/* ── Theme ─────────────────────────────────────────────────────── */
+export async function setThemeAction(theme: string) {
+  if (!isTheme(theme)) return;
+  (await cookies()).set(THEME_COOKIE, theme, { sameSite: "lax", path: "/", maxAge: 365 * 86400 });
+  const u = await getSession();
+  if (u) await prisma.user.update({ where: { id: u.id }, data: { theme } });
+  revalidatePath("/", "layout");
 }
