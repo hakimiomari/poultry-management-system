@@ -46,8 +46,10 @@ git clone https://github.com/hakimiomari/poultry-management-system.git
 cd poultry-management-system
 npm install          # also runs `prisma generate`
 npm run db:reset     # migrate + seed 2 demo flocks with 30 days of records
-npm run dev          # → http://localhost:3000
+npm run dev          # → http://localhost:3000  (front page)  ·  /login  (app)
 ```
+
+The root URL is a public landing page — hero, animated flock journey, features, screens, and links to the app and this repo. Set `NEXT_PUBLIC_CONTACT_EMAIL` to show a Contact button there.
 
 <details>
 <summary><b>Demo accounts</b> (phone / password)</summary>
