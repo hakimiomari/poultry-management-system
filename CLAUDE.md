@@ -9,6 +9,7 @@ Source-of-truth spec: `SPEC.md` (v2.0). Read it before changing data models, for
 - Prisma 6 + SQLite (`prisma/schema.prisma`, `DATABASE_URL` in `.env`). Switch to PostgreSQL by changing `provider` and the URL.
 - Auth: cookie session (jose JWT) — `src/lib/auth.ts`. Roles: OWNER, FARM_MANAGER, WORKER, VETERINARIAN, ACCOUNTANT.
 - Validation: zod schemas in `src/lib/validation.ts`. Enums live in `src/lib/enums.ts` (SQLite has no native enums).
+- Live updates: `audit()` calls `notifyChange()` (`src/lib/live.ts`), `/api/live` streams that signal (SSE, signed-in only, no data), and `LiveRefresh` in the app layout calls `router.refresh()` on every open screen. A write that skips `audit()` will not reach other devices. In-process only: one Node server.
 - Pure business formulas: `src/lib/domain/*` — **no DB access, unit-tested with vitest** (`tests/`).
 
 ## Rules

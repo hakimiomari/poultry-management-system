@@ -5,6 +5,7 @@ import { SideNav, BottomNav, type NavItem } from "@/components/Nav";
 import { fmtJalali, todayStr } from "@/lib/format";
 import { UserMenu } from "@/components/UserMenu";
 import { LanguageMenu } from "@/components/LanguageMenu";
+import { LiveRefresh } from "@/components/LiveRefresh";
 import { getTheme } from "@/lib/locale";
 import { can } from "@/lib/enums";
 
@@ -81,6 +82,7 @@ export default async function AppLayout({
         </main>
       </div>
       <BottomNav items={items} moreLabel={t("nav.more")} />
+      <LiveRefresh />
     </div>
   );
 }
