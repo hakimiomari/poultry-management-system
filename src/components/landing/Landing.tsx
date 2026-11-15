@@ -81,7 +81,7 @@ export function Landing({ signedIn, repoUrl, contactEmail }: Props) {
         <motion.div style={{ y: heroY, opacity: heroOpacity }} className="mx-auto max-w-6xl px-4 pt-16 pb-10 text-center sm:px-6 sm:pt-24">
           <motion.div initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }}><Pill><Egg className="size-3.5" />Open-source poultry farm management</Pill></motion.div>
           <motion.h1 initial={reduce ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1, ease }} className="font-heading mx-auto mt-5 max-w-3xl text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
-            Every bird counted.<br /><span className="bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">Every day recorded.</span>
+            Every bird counted.<br /><span className="text-primary">Every day recorded.</span>
           </motion.h1>
           <motion.p initial={reduce ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2, ease }} className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
             PMS runs broiler and layer farms from a phone in the shed — flocks, daily logs, sales and purchases, vet visits and alerts — in English, Dari and Pashto.

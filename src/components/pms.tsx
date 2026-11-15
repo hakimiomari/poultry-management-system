@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, Siren } from "lucide-react";
 
-export const Kpi = ({ label, value, sub, icon, tone = "default" }: { label: string; value: string | number; sub?: string; icon?: ReactNode; tone?: "default" | "danger" | "ok" | "info" }) => {
+export const Kpi = ({ label, value, sub, icon, tone = "default" }: { label: string; value: ReactNode; sub?: string; icon?: ReactNode; tone?: "default" | "danger" | "ok" | "info" }) => {
   const color = { default: "text-foreground", danger: "text-destructive", ok: "text-success", info: "text-info" }[tone];
   const bg = { default: "bg-muted text-muted-foreground", danger: "bg-danger-soft text-destructive", ok: "bg-success-soft text-success", info: "bg-info-soft text-info" }[tone];
   return (

@@ -22,6 +22,12 @@ const en = {
   "dash.recordToday": "Record today", "dash.activeFlocks": "Active flocks", "dash.totalBirds": "Total birds",
   "dash.deathsToday": "Deaths today", "dash.eggsToday": "Eggs today", "dash.feedToday": "Feed today",
   "dash.population": "Population", "dash.mortality": "Mortality", "dash.age": "Age", "dash.noFlocks": "No active flocks yet.", "dash.createOne": "Create one",
+  "dash.trends": "Farm trends", "dash.trendsSub": "Active flocks, {from} to {to}", "dash.noData": "No records in this period.",
+  "dash.chart.eggs": "Eggs collected per day", "dash.chart.feed": "Feed consumed per day (kg)",
+  "dash.chart.deathsSub": "{n} deaths in this period", "dash.chart.eggsSub": "{n} eggs in this period", "dash.chart.henDayAvg": "average hen-day {pct}%", "dash.chart.feedSub": "{n} kg in this period",
+  "dash.chart.cashflow": "Income and expenses by month", "dash.chart.cashflowSub": "Last {n} months, AFN",
+  "dash.sheds": "Shed occupancy", "dash.shedsInUse": "{n} of {total} sheds in use", "dash.causes": "Deaths by cause", "dash.noDeaths": "No deaths recorded in this period.",
+  "dash.health": "Upcoming health tasks", "dash.noHealth": "No pending health tasks.", "dash.healthPending": "Health tasks pending", "dash.nOverdue": "{n} overdue", "dash.last7": "{n} in the last 7 days",
   // flocks
   "flocks.title": "Flocks", "flocks.nActive": "{n} active", "flocks.new": "New flock", "flocks.edit": "Edit", "flocks.typeBreed": "Type / breed",
   "flocks.shed": "Shed", "flocks.intake": "Intake", "flocks.age": "Age", "flocks.population": "Population", "flocks.mortality": "Mortality",
@@ -55,8 +61,8 @@ const en = {
   "profile.title": "My profile", "profile.subtitle": "Account details, language and password", "profile.edit": "Edit profile", "profile.changePw": "Change password",
   "profile.memberSince": "Member since {date}", "profile.permissions": "Permissions", "profile.permissionsDesc": "What the {role} role can access",
   "profile.activity": "My recent activity", "profile.when": "When", "profile.action": "Action", "profile.record": "Record", "profile.noActivity": "No activity yet.",
-  "profile.form.title": "Edit profile", "profile.form.desc": "Your name, login phone and interface language.", "profile.form.fullName": "Full name",
-  "profile.form.phone": "Phone (login)", "profile.form.language": "Language",
+  "profile.form.title": "Edit profile", "profile.form.desc": "Your name and login phone.", "profile.form.fullName": "Full name",
+  "profile.form.phone": "Phone (login)",
   "pw.title": "Change password", "pw.current": "Current password", "pw.new": "New password", "pw.hint": "At least 6 characters", "pw.confirm": "Confirm new password", "pw.update": "Update password",
   // users
   "users.title": "Users", "users.nActive": "{n} active accounts", "users.new": "New user", "users.phone": "Phone", "users.role": "Role", "users.language": "Language",

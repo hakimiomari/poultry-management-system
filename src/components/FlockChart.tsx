@@ -2,9 +2,9 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid, Area, AreaChart } from "recharts";
 
 type Point = { date: string; population: number; deaths: number; feedKg: number; eggs: number; henDayPct: number | null };
-const axis = { tick: { fontSize: 11, fill: "var(--muted-foreground)" }, axisLine: false, tickLine: false } as const;
-const tip = { contentStyle: { background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--foreground)", fontSize: 12 } };
-const fmtDay = (d: string) => d.slice(5);
+export const axis = { tick: { fontSize: 11, fill: "var(--muted-foreground)" }, axisLine: false, tickLine: false } as const;
+export const tip = { contentStyle: { background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--foreground)", fontSize: 12 }, itemStyle: { color: "var(--foreground)" } };
+export const fmtDay = (d: string) => d.slice(5);
 
 export function PopulationChart({ data, height = 200, label = "population" }: { data: Point[]; height?: number; label?: string }) {
   return (

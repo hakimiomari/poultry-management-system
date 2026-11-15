@@ -10,9 +10,9 @@ import { birdMovementSchema, dailyLogSchema, flockSchema, formToObject, loginSch
 import { validateMovement, validateShedCapacity, currentQuantity } from "./domain/population";
 import { shedOccupancy } from "./services/flocks";
 import { toDate, todayStr } from "./format";
-import { getT, THEME_COOKIE, isTheme } from "./locale";
+import { getT, THEME_COOKIE, LANG_COOKIE, isTheme } from "./locale";
 import { cookies } from "next/headers";
-import type { TKey, TFn } from "./i18n";
+import { isLang, type TKey, type TFn } from "./i18n";
 import type { RuleError } from "./domain/population";
 
 export type ActionState = { ok?: boolean; error?: string } | undefined;
@@ -160,9 +160,8 @@ export async function updateProfileAction(_: ActionState, fd: FormData): Promise
   if (dup && dup.id !== user.id) return { error: t("err.phoneInUse") };
   const old = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
   const updated = await prisma.user.update({ where: { id: user.id }, data: p.data });
-  await audit(user.id, "users", user.id, "UPDATE", { fullName: old.fullName, phone: old.phone, language: old.language, theme: old.theme }, p.data);
+  await audit(user.id, "users", user.id, "UPDATE", { fullName: old.fullName, phone: old.phone }, p.data);
   await refreshSession(updated.id);
-  (await cookies()).set(THEME_COOKIE, p.data.theme, { sameSite: "lax", path: "/", maxAge: 365 * 86400 });
   revalidatePath("/", "layout"); return { ok: true };
 }
 
@@ -342,5 +341,20 @@ export async function setThemeAction(theme: string) {
   (await cookies()).set(THEME_COOKIE, theme, { sameSite: "lax", path: "/", maxAge: 365 * 86400 });
   const u = await getSession();
   if (u) await prisma.user.update({ where: { id: u.id }, data: { theme } });
+  revalidatePath("/", "layout");
+}
+
+/* ── Language ──────────────────────────────────────────────────── */
+/** Header language switcher: saves the user's language, re-issues the session and remembers it for the login page. */
+export async function setLanguageAction(language: string) {
+  if (!isLang(language)) return;
+  const user = await requireUser();
+  const old = await prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: { language: true } });
+  if (old.language !== language) {
+    await prisma.user.update({ where: { id: user.id }, data: { language } });
+    await audit(user.id, "users", user.id, "UPDATE", { language: old.language }, { language });
+  }
+  await refreshSession(user.id);
+  (await cookies()).set(LANG_COOKIE, language, { sameSite: "lax", path: "/", maxAge: 365 * 86400 });
   revalidatePath("/", "layout");
 }
