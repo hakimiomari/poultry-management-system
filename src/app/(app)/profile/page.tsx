@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EditProfileDialog, ChangePasswordDialog } from "@/components/forms/ProfileForms";
 import { enumLabel, type TKey } from "@/lib/i18n";
-import { getT } from "@/lib/locale";
+import { getT, getTheme } from "@/lib/locale";
+import { ThemePicker } from "@/components/ThemePicker";
 import { PERMISSIONS, type Role } from "@/lib/enums";
 import { fmtDateDisplay } from "@/lib/format";
 import { Pencil, KeyRound } from "lucide-react";
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
 const initials = (n: string) => n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
 export default async function ProfilePage() {
-  const session = await requireUser(); const { t, lang } = await getT();
+  const session = await requireUser(); const { t, lang } = await getT(); const theme = await getTheme();
   const [user, activity] = await Promise.all([
     prisma.user.findUniqueOrThrow({ where: { id: session.id } }),
     prisma.auditLog.findMany({ where: { userId: session.id }, orderBy: { timestamp: "desc" }, take: 15 })]);
@@ -34,10 +35,16 @@ export default async function ProfilePage() {
             <div className="text-xs text-muted-foreground">{t("profile.memberSince", { date: fmtDateDisplay(user.createdAt) })}</div>
           </CardContent>
         </Card>
-        <Card className="lg:col-span-2">
+        <div className="flex flex-col gap-4 lg:col-span-2">
+        <Card>
           <CardHeader><CardTitle>{t("profile.permissions")}</CardTitle><CardDescription>{t("profile.permissionsDesc", { role: enumLabel(user.role, lang) })}</CardDescription></CardHeader>
           <CardContent className="flex flex-wrap gap-2">{PERMISSIONS[user.role as Role].map((p) => <ToneBadge key={p} tone="blue">{t(`perm.${p}` as TKey)}</ToneBadge>)}</CardContent>
         </Card>
+        <Card>
+          <CardHeader><CardTitle>{t("theme.label")}</CardTitle></CardHeader>
+          <CardContent><ThemePicker theme={theme} /></CardContent>
+        </Card>
+        </div>
       </div>
       <Card className="gap-0 py-0"><CardHeader className="py-4"><CardTitle>{t("profile.activity")}</CardTitle></CardHeader>
         <Table><TableHeader><TableRow><TableHead>{t("profile.when")}</TableHead><TableHead>{t("profile.action")}</TableHead><TableHead>{t("profile.record")}</TableHead></TableRow></TableHeader>

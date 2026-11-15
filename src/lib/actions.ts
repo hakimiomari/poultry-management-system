@@ -6,20 +6,16 @@ import { redirect } from "next/navigation";
 import { prisma } from "./db";
 import { audit } from "./audit";
 import { login as doLogin, logout as doLogout, requireUser, getSession } from "./auth";
-import { birdMovementSchema, dailyLogSchema, flockSchema, formToObject, loginSchema, shedSchema } from "./validation";
+import { flockSchema, formToObject, loginSchema, shedSchema } from "./validation";
 import { validateMovement, validateShedCapacity, currentQuantity } from "./domain/population";
 import { shedOccupancy } from "./services/flocks";
 import { toDate, todayStr } from "./format";
-import { getT, THEME_COOKIE, isTheme } from "./locale";
+import { getT, THEME_COOKIE, LANG_COOKIE, isTheme } from "./locale";
 import { cookies } from "next/headers";
-import type { TKey, TFn } from "./i18n";
-import type { RuleError } from "./domain/population";
+import { isLang, type TFn } from "./i18n";
+import { applyDailyLog, applyMovement, closeFlock, issues, rule, refreshAll } from "./records";
 
 export type ActionState = { ok?: boolean; error?: string } | undefined;
-const issues = (t: TFn, e: { issues: { path: PropertyKey[]; message: string }[] }) =>
-  t("err.invalid", { fields: [...new Set(e.issues.map((i) => t(`field.${String(i.path[0])}` as TKey)))].join(", ") });
-const rule = (t: TFn, r: RuleError) => ({ error: t(r.key, r.params) });
-const refreshAll = (flockId?: string) => { for (const p of ["/dashboard", "/flocks", "/sheds", "/daily-logs", "/movements"]) revalidatePath(p); if (flockId) revalidatePath(`/flocks/${flockId}`); };
 
 export async function loginAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const { t } = await getT();
@@ -82,35 +78,13 @@ export async function saveFlockAction(_: ActionState, fd: FormData): Promise<Act
   refreshAll(flock.id); return { ok: true };
 }
 export async function closeFlockAction(flockId: string) {
-  const user = await requireUser("records");
-  const old = await prisma.flock.findUniqueOrThrow({ where: { id: flockId } });
-  const flock = await prisma.flock.update({ where: { id: flockId }, data: { status: "COMPLETED", closedAt: new Date() } });
-  if ((await shedOccupancy(flock.shedId)) === 0) await prisma.shed.update({ where: { id: flock.shedId }, data: { status: "CLEANING" } });
-  await audit(user.id, "flocks", flockId, "UPDATE", old, flock);
-  refreshAll(flockId);
+  await closeFlock(await requireUser("records"), flockId);
 }
 
 /* ── Daily logs ────────────────────────────────────────────────── */
 export async function saveDailyLogAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requireUser("records"); const { t } = await getT();
-  const p = dailyLogSchema.safeParse(formToObject(fd));
-  if (!p.success) return { error: issues(t, p.error) };
-  const { mortality, date, ...data } = p.data;
-  const flock = await prisma.flock.findUnique({ where: { id: data.flockId }, include: { birdMovements: true } });
-  if (!flock || flock.status !== "ACTIVE") return { error: t("err.flockInactive") };
-  if (toDate(date) < flock.intakeDate) return { error: t("err.dateBeforeIntake") };
-  if (data.eggsBroken > data.eggsCollected) return { error: t("err.brokenExceeds") };
-  if (mortality > 0) { const v = validateMovement(flock.initialQuantity, flock.birdMovements, mortality); if (!v.ok) return rule(t, v); }
-  const existing = await prisma.dailyLog.findUnique({ where: { flockId_date: { flockId: data.flockId, date: toDate(date) } } });
-  const log = existing
-    ? await prisma.dailyLog.update({ where: { id: existing.id }, data: { ...data, recordedById: user.id } })
-    : await prisma.dailyLog.create({ data: { ...data, date: toDate(date), recordedById: user.id } });
-  await audit(user.id, "daily_logs", log.id, existing ? "UPDATE" : "CREATE", existing, log);
-  if (mortality > 0) {
-    const mv = await prisma.birdMovement.create({ data: { flockId: data.flockId, date: toDate(date), movementType: "MORTALITY", quantity: mortality, cause: "UNKNOWN", notes: "From daily log" } });
-    await audit(user.id, "bird_movements", mv.id, "CREATE", null, mv);
-  }
-  refreshAll(data.flockId); return { ok: true };
+  return applyDailyLog(user, t, formToObject(fd));
 }
 export async function deleteDailyLogAction(id: string): Promise<ActionState> {
   const user = await requireUser("records");
@@ -122,23 +96,7 @@ export async function deleteDailyLogAction(id: string): Promise<ActionState> {
 /* ── Bird movements ────────────────────────────────────────────── */
 export async function saveMovementAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requireUser("records"); const { t } = await getT();
-  const id = (fd.get("id") as string) || null;
-  const p = birdMovementSchema.safeParse(formToObject(fd));
-  if (!p.success) return { error: issues(t, p.error) };
-  const d = p.data;
-  const flock = await prisma.flock.findUnique({ where: { id: d.flockId }, include: { birdMovements: true } });
-  if (!flock || flock.status !== "ACTIVE") return { error: t("err.flockInactive") };
-  if (toDate(d.date) < flock.intakeDate) return { error: t("err.dateBeforeIntake") };
-  const others = flock.birdMovements.filter((m) => m.id !== id);
-  const v = validateMovement(flock.initialQuantity, others, d.quantity);
-  if (!v.ok) return rule(t, v);
-  if (d.movementType === "SALE" && flock.flockType === "BROILER" && !d.averageWeightG) return { error: t("err.weightRequired") };
-  const data = { ...d, date: toDate(d.date), cause: d.cause ?? null, averageWeightG: d.averageWeightG ?? null, notes: d.notes ?? null };
-  const old = id ? await prisma.birdMovement.findUniqueOrThrow({ where: { id } }) : null;
-  const mv = old ? await prisma.birdMovement.update({ where: { id: id! }, data }) : await prisma.birdMovement.create({ data });
-  await audit(user.id, "bird_movements", mv.id, old ? "UPDATE" : "CREATE", old, mv);
-  if (currentQuantity(flock.initialQuantity, [...others, mv]) === 0) await closeFlockAction(flock.id);
-  refreshAll(d.flockId); return { ok: true };
+  return applyMovement(user, t, formToObject(fd));
 }
 export async function deleteMovementAction(id: string): Promise<ActionState> {
   const user = await requireUser("records");
@@ -160,9 +118,8 @@ export async function updateProfileAction(_: ActionState, fd: FormData): Promise
   if (dup && dup.id !== user.id) return { error: t("err.phoneInUse") };
   const old = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
   const updated = await prisma.user.update({ where: { id: user.id }, data: p.data });
-  await audit(user.id, "users", user.id, "UPDATE", { fullName: old.fullName, phone: old.phone, language: old.language, theme: old.theme }, p.data);
+  await audit(user.id, "users", user.id, "UPDATE", { fullName: old.fullName, phone: old.phone }, p.data);
   await refreshSession(updated.id);
-  (await cookies()).set(THEME_COOKIE, p.data.theme, { sameSite: "lax", path: "/", maxAge: 365 * 86400 });
   revalidatePath("/", "layout"); return { ok: true };
 }
 
@@ -342,5 +299,20 @@ export async function setThemeAction(theme: string) {
   (await cookies()).set(THEME_COOKIE, theme, { sameSite: "lax", path: "/", maxAge: 365 * 86400 });
   const u = await getSession();
   if (u) await prisma.user.update({ where: { id: u.id }, data: { theme } });
+  revalidatePath("/", "layout");
+}
+
+/* ── Language ──────────────────────────────────────────────────── */
+/** Header language switcher: saves the user's language, re-issues the session and remembers it for the login page. */
+export async function setLanguageAction(language: string) {
+  if (!isLang(language)) return;
+  const user = await requireUser();
+  const old = await prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: { language: true } });
+  if (old.language !== language) {
+    await prisma.user.update({ where: { id: user.id }, data: { language } });
+    await audit(user.id, "users", user.id, "UPDATE", { language: old.language }, { language });
+  }
+  await refreshSession(user.id);
+  (await cookies()).set(LANG_COOKIE, language, { sameSite: "lax", path: "/", maxAge: 365 * 86400 });
   revalidatePath("/", "layout");
 }

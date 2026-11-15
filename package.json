@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "host": "next start -H 0.0.0.0 -p 3005",
     "lint": "eslint",
     "test": "vitest run",
     "db:migrate": "prisma migrate dev",

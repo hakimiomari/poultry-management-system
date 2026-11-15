@@ -1,0 +1,54 @@
+<!doctype html>
+<!-- Shown by the service worker (public/sw.js) when the PMS server cannot be reached.
+     A static file outside the app, so it cannot use the i18n dictionaries: the message is written in all three languages. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PMS — offline</title>
+<style>
+  :root { --bg: #f9f7f1; --card: #ffffff; --fg: #191f2b; --muted: #5d646f; --primary: #2552aa; --on-primary: #ffffff; --border: #e3e0d8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0c0f16; --card: #161b23; --fg: #e7ebf2; --muted: #9aa3b2; --primary: #7ba4f0; --on-primary: #0c0f16; --border: #2a303b; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { width: 100%; max-width: 420px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; text-align: center; }
+  img { width: 72px; height: 72px; border-radius: 18px; }
+  h1 { margin: 16px 0 4px; font-size: 20px; }
+  p { margin: 6px 0; color: var(--muted); font-size: 14px; }
+  [dir="rtl"] { font-size: 15px; line-height: 1.8; }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 16px 0; }
+  button { margin-top: 18px; width: 100%; padding: 12px 16px; border: 0; border-radius: 10px; background: var(--primary); color: var(--on-primary); font: inherit; font-weight: 600; cursor: pointer; }
+  small { display: block; margin-top: 12px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <img src="/icons/icon-192.png" alt="">
+  <h1>Can't reach the PMS server</h1>
+  <p>Check that this phone is on the farm Wi‑Fi and that the server computer is switched on.</p>
+  <hr>
+  <div dir="rtl" lang="fa">
+    <p><strong>ارتباط با سرور PMS برقرار نشد</strong></p>
+    <p>مطمئن شوید این تلفن به وای‌فای فارم وصل است و کمپیوتر سرور روشن است.</p>
+  </div>
+  <hr>
+  <div dir="rtl" lang="ps">
+    <p><strong>د PMS سرور سره اړیکه ونه شوه</strong></p>
+    <p>ډاډ ترلاسه کړئ چې دا تلیفون د فارم له وای‌فای سره وصل دی او د سرور کمپیوټر روښانه دی.</p>
+  </div>
+  <button type="button" id="retry">Try again · تلاش دوباره · بیا هڅه</button>
+  <small id="status"></small>
+</main>
+<script>
+  // Reload as soon as the server answers again; the button does the same on demand.
+  var busy = false;
+  function check() {
+    if (busy) return; busy = true;
+    fetch("/api/health", { cache: "no-store" }).then(function (r) { if (r.ok) location.reload(); }).catch(function () {}).then(function () { busy = false; });
+  }
+  document.getElementById("retry").addEventListener("click", function () { location.reload(); });
+  setInterval(check, 5000);
+  window.addEventListener("online", check);
+</script>
+</body>
+</html>

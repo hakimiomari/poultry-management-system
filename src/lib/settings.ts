@@ -9,6 +9,8 @@ export const DEFAULT_SETTINGS: Record<string, { value: string; description: stri
   "alert.feed.runoutDays": { value: "5", description: "Feed runout forecast days (#8)" },
   "alert.water.dropPct": { value: "20", description: "Water consumption drop % (#9)" },
   "eggs.trayCount": { value: "30", description: "Eggs per tray for display" },
+  "dashboard.trendDays": { value: "30", description: "Dashboard: days shown in the farm trend charts" },
+  "dashboard.cashflowMonths": { value: "6", description: "Dashboard: months shown in the income and expenses chart" },
 };
 
 export async function getSetting(key: string): Promise<string> {

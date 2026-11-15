@@ -3,7 +3,7 @@ const en = {
   // app / nav
   "app.title": "Poultry Management System", "app.short": "PMS",
   "nav.dashboard": "Dashboard", "nav.flocks": "Flocks", "nav.sheds": "Sheds", "nav.dailyLogs": "Daily Logs",
-  "nav.movements": "Bird Movements", "nav.users": "Users", "theme.label": "Theme", "theme.SYSTEM": "System", "theme.LIGHT": "Light", "theme.DARK": "Dark", "nav.more": "More", "nav.profile": "Profile", "nav.logout": "Logout",
+  "nav.movements": "Bird Movements", "nav.users": "Users", "theme.label": "Theme", "theme.SYSTEM": "System", "theme.LIGHT": "Light", "theme.DARK": "Dark", "nav.more": "More", "nav.profile": "Profile", "nav.logout": "Logout", "pwa.install": "Install app",
   // auth
   "auth.login": "Login", "auth.signingIn": "Signing in…", "auth.phone": "Phone", "auth.password": "Password",
   "auth.invalid": "Invalid phone or password", "auth.enterBoth": "Enter phone and password",
@@ -21,7 +21,23 @@ const en = {
   "dash.title": "Dashboard", "dash.allNormal": "All flocks normal", "dash.alertsNeed": "{n} alert(s) need attention",
   "dash.recordToday": "Record today", "dash.activeFlocks": "Active flocks", "dash.totalBirds": "Total birds",
   "dash.deathsToday": "Deaths today", "dash.eggsToday": "Eggs today", "dash.feedToday": "Feed today",
+  // offline (field entry without a connection)
+  "offline.label": "Offline", "offline.banner": "No connection to the server. Showing data saved at {time}.",
+  "offline.bannerHint": "Daily logs and bird movements you record now are kept on this phone and sent when the connection returns.",
+  "offline.queued": "Saved on this phone. It will be sent when the connection returns.",
+  "offline.cannot": "No connection to the server. This can only be done while connected.",
+  "outbox.title": "Waiting to send", "outbox.desc": "Entries recorded without a connection. They are sent automatically when the connection returns.",
+  "outbox.empty": "Nothing is waiting to send.", "outbox.waiting": "Waiting", "outbox.refused": "Refused", "outbox.recordedAt": "Recorded {time}",
+  "outbox.retry": "Send again", "outbox.discard": "Discard", "outbox.sendNow": "Send now", "outbox.loginNeeded": "Log in again to send these entries.",
+  "outbox.refusedHint": "The server refused this entry. Fix the cause and send it again, or discard it and record it again.",
+  "err.noPermission": "Your account is not allowed to record this.",
   "dash.population": "Population", "dash.mortality": "Mortality", "dash.age": "Age", "dash.noFlocks": "No active flocks yet.", "dash.createOne": "Create one",
+  "dash.trends": "Farm trends", "dash.trendsSub": "Active flocks, {from} to {to}", "dash.noData": "No records in this period.",
+  "dash.chart.eggs": "Eggs collected per day", "dash.chart.feed": "Feed consumed per day (kg)",
+  "dash.chart.deathsSub": "{n} deaths in this period", "dash.chart.eggsSub": "{n} eggs in this period", "dash.chart.henDayAvg": "average hen-day {pct}%", "dash.chart.feedSub": "{n} kg in this period",
+  "dash.chart.cashflow": "Income and expenses by month", "dash.chart.cashflowSub": "Last {n} months, AFN",
+  "dash.sheds": "Shed occupancy", "dash.shedsInUse": "{n} of {total} sheds in use", "dash.causes": "Deaths by cause", "dash.noDeaths": "No deaths recorded in this period.",
+  "dash.health": "Upcoming health tasks", "dash.noHealth": "No pending health tasks.", "dash.healthPending": "Health tasks pending", "dash.nOverdue": "{n} overdue", "dash.last7": "{n} in the last 7 days",
   // flocks
   "flocks.title": "Flocks", "flocks.nActive": "{n} active", "flocks.new": "New flock", "flocks.edit": "Edit", "flocks.typeBreed": "Type / breed",
   "flocks.shed": "Shed", "flocks.intake": "Intake", "flocks.age": "Age", "flocks.population": "Population", "flocks.mortality": "Mortality",
@@ -55,8 +71,8 @@ const en = {
   "profile.title": "My profile", "profile.subtitle": "Account details, language and password", "profile.edit": "Edit profile", "profile.changePw": "Change password",
   "profile.memberSince": "Member since {date}", "profile.permissions": "Permissions", "profile.permissionsDesc": "What the {role} role can access",
   "profile.activity": "My recent activity", "profile.when": "When", "profile.action": "Action", "profile.record": "Record", "profile.noActivity": "No activity yet.",
-  "profile.form.title": "Edit profile", "profile.form.desc": "Your name, login phone and interface language.", "profile.form.fullName": "Full name",
-  "profile.form.phone": "Phone (login)", "profile.form.language": "Language",
+  "profile.form.title": "Edit profile", "profile.form.desc": "Your name and login phone.", "profile.form.fullName": "Full name",
+  "profile.form.phone": "Phone (login)",
   "pw.title": "Change password", "pw.current": "Current password", "pw.new": "New password", "pw.hint": "At least 6 characters", "pw.confirm": "Confirm new password", "pw.update": "Update password",
   // users
   "users.title": "Users", "users.nActive": "{n} active accounts", "users.new": "New user", "users.phone": "Phone", "users.role": "Role", "users.language": "Language",

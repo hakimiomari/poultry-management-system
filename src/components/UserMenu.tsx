@@ -9,7 +9,9 @@ import { Field } from "@/components/forms/fields";
 import { Input } from "@/components/ui/input";
 import { changePasswordAction } from "@/lib/actions";
 import { useT } from "@/components/I18nProvider";
-import { ChevronDown, KeyRound, LogOut, UserCircle, Sun, Moon, Monitor } from "lucide-react";
+import { ChevronDown, Download, KeyRound, LogOut, UserCircle, Sun, Moon, Monitor } from "lucide-react";
+import { useInstallPrompt } from "@/components/pwa";
+import { signOut } from "@/lib/offline/pages";
 
 type Props = { user: { fullName: string }; theme: string; logout: () => Promise<void> };
 
@@ -24,13 +26,14 @@ const itemCls = "group gap-3 rounded-lg px-2.5 py-2 text-sm focus:bg-primary/10 
 export function UserMenu({ user, theme, logout }: Props) {
   const { t } = useT(); const router = useRouter();
   const [pwOpen, setPwOpen] = useState(false);
+  const { available: canInstall, install } = useInstallPrompt();
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger className="group flex items-center gap-2 rounded-full border border-transparent py-1 pe-2.5 ps-1 text-sm outline-none transition hover:border-border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 data-open:border-border data-open:bg-muted">
+        <DropdownMenuTrigger className="group flex items-center gap-2 rounded-full border border-transparent py-1 pe-2.5 ps-1 text-sm outline-none transition hover:border-border hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 data-popup-open:border-border data-popup-open:bg-muted">
           <Avatar name={user.fullName} className="size-8 text-xs" />
           <span className="hidden max-w-40 truncate font-medium sm:block">{user.fullName}</span>
-          <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200 group-data-open:rotate-180" />
+          <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200 group-data-popup-open:rotate-180" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" sideOffset={8} className="w-64 rounded-xl p-1.5 shadow-lg">
           <DropdownMenuGroup>
@@ -42,6 +45,7 @@ export function UserMenu({ user, theme, logout }: Props) {
           <DropdownMenuGroup>
             <DropdownMenuItem nativeButton={false} render={<Link href="/profile" />} className={itemCls}><UserCircle />{t("nav.profile")}</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setPwOpen(true)} className={itemCls}><KeyRound />{t("profile.changePw")}</DropdownMenuItem>
+            {canInstall && <DropdownMenuItem onClick={() => install()} className={itemCls}><Download />{t("pwa.install")}</DropdownMenuItem>}
           </DropdownMenuGroup>
           <DropdownMenuSeparator className="my-1.5" />
           <DropdownMenuGroup>
@@ -52,7 +56,7 @@ export function UserMenu({ user, theme, logout }: Props) {
             </DropdownMenuRadioGroup>
           </DropdownMenuGroup>
           <DropdownMenuSeparator className="my-1.5" />
-          <DropdownMenuItem variant="destructive" onClick={() => logout()} className={`${itemCls} [&_svg]:text-destructive`}><LogOut />{t("nav.logout")}</DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" onClick={() => signOut(logout)} className={`${itemCls} [&_svg]:text-destructive`}><LogOut />{t("nav.logout")}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <FormDialog open={pwOpen} onOpenChange={setPwOpen} title={t("pw.title")} action={changePasswordAction} submitLabel={t("pw.update")}>

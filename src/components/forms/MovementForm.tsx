@@ -16,7 +16,7 @@ type Movement = { id: string; flockId: string; date: Date; movementType: string;
 export async function MovementDialog({ trigger, flocks, movement, flockId }: { trigger: ReactNode; flocks: FlockOption[]; movement?: Movement; flockId?: string }) {
   const { t, lang } = await getT();
   return (
-    <FormDialog trigger={trigger} title={movement ? t("mov.form.editTitle") : t("mov.form.title")} description={t("mov.form.desc")} action={saveMovementAction}>
+    <FormDialog trigger={trigger} title={movement ? t("mov.form.editTitle") : t("mov.form.title")} description={t("mov.form.desc")} action={saveMovementAction} offline="movement">
       {movement && <input type="hidden" name="id" value={movement.id} />}
       <div className="grid grid-cols-2 gap-4">
         <Field label={t("common.flock")}><NativeSelect name="flockId" defaultValue={movement?.flockId ?? flockId}>{flocks.map((f) => <NativeSelectOption key={f.id} value={f.id}>{f.flockName}</NativeSelectOption>)}</NativeSelect></Field>
