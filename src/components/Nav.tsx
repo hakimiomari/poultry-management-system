@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useT } from "@/components/I18nProvider";
+import { signOut } from "@/lib/offline/pages";
 import {
   LayoutDashboard,
   Bird,
@@ -71,7 +72,10 @@ export function SideNav({
             );
           })}
         </div>
-        <form action={logout} className="mt-3 shrink-0 border-t pt-3">
+        <form
+          action={() => signOut(logout)}
+          className="mt-3 shrink-0 border-t pt-3"
+        >
           <button
             type="submit"
             className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"

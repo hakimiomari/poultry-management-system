@@ -16,7 +16,7 @@ export async function DailyLogDialog({ trigger, flocks, log, flockId }: { trigge
   const selected = log?.flockId ?? flockId ?? flocks[0]?.id;
   const isLayer = flocks.some((f) => f.flockType === "LAYER");
   return (
-    <FormDialog trigger={trigger} title={log ? t("logs.form.editTitle", { date: fmtDateDisplay(log.date) }) : t("logs.form.title")} description={t("logs.form.desc")} action={saveDailyLogAction}>
+    <FormDialog trigger={trigger} title={log ? t("logs.form.editTitle", { date: fmtDateDisplay(log.date) }) : t("logs.form.title")} description={t("logs.form.desc")} action={saveDailyLogAction} offline="dailyLog">
       <div className="grid grid-cols-2 gap-4">
         <Field label={t("common.flock")}><NativeSelect name="flockId" defaultValue={selected} disabled={!!log}>{flocks.map((f) => <NativeSelectOption key={f.id} value={f.id}>{f.flockName}</NativeSelectOption>)}</NativeSelect>{log && <input type="hidden" name="flockId" value={log.flockId} />}</Field>
         <Field label={t("common.date")}><Input name="date" type="date" required defaultValue={log ? fmtDate(log.date) : todayStr()} readOnly={!!log} dir="ltr" /></Field>

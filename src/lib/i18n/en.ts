@@ -3,7 +3,7 @@ const en = {
   // app / nav
   "app.title": "Poultry Management System", "app.short": "PMS",
   "nav.dashboard": "Dashboard", "nav.flocks": "Flocks", "nav.sheds": "Sheds", "nav.dailyLogs": "Daily Logs",
-  "nav.movements": "Bird Movements", "nav.users": "Users", "theme.label": "Theme", "theme.SYSTEM": "System", "theme.LIGHT": "Light", "theme.DARK": "Dark", "nav.more": "More", "nav.profile": "Profile", "nav.logout": "Logout",
+  "nav.movements": "Bird Movements", "nav.users": "Users", "theme.label": "Theme", "theme.SYSTEM": "System", "theme.LIGHT": "Light", "theme.DARK": "Dark", "nav.more": "More", "nav.profile": "Profile", "nav.logout": "Logout", "pwa.install": "Install app",
   // auth
   "auth.login": "Login", "auth.signingIn": "Signing in…", "auth.phone": "Phone", "auth.password": "Password",
   "auth.invalid": "Invalid phone or password", "auth.enterBoth": "Enter phone and password",
@@ -21,6 +21,16 @@ const en = {
   "dash.title": "Dashboard", "dash.allNormal": "All flocks normal", "dash.alertsNeed": "{n} alert(s) need attention",
   "dash.recordToday": "Record today", "dash.activeFlocks": "Active flocks", "dash.totalBirds": "Total birds",
   "dash.deathsToday": "Deaths today", "dash.eggsToday": "Eggs today", "dash.feedToday": "Feed today",
+  // offline (field entry without a connection)
+  "offline.label": "Offline", "offline.banner": "No connection to the server. Showing data saved at {time}.",
+  "offline.bannerHint": "Daily logs and bird movements you record now are kept on this phone and sent when the connection returns.",
+  "offline.queued": "Saved on this phone. It will be sent when the connection returns.",
+  "offline.cannot": "No connection to the server. This can only be done while connected.",
+  "outbox.title": "Waiting to send", "outbox.desc": "Entries recorded without a connection. They are sent automatically when the connection returns.",
+  "outbox.empty": "Nothing is waiting to send.", "outbox.waiting": "Waiting", "outbox.refused": "Refused", "outbox.recordedAt": "Recorded {time}",
+  "outbox.retry": "Send again", "outbox.discard": "Discard", "outbox.sendNow": "Send now", "outbox.loginNeeded": "Log in again to send these entries.",
+  "outbox.refusedHint": "The server refused this entry. Fix the cause and send it again, or discard it and record it again.",
+  "err.noPermission": "Your account is not allowed to record this.",
   "dash.population": "Population", "dash.mortality": "Mortality", "dash.age": "Age", "dash.noFlocks": "No active flocks yet.", "dash.createOne": "Create one",
   "dash.trends": "Farm trends", "dash.trendsSub": "Active flocks, {from} to {to}", "dash.noData": "No records in this period.",
   "dash.chart.eggs": "Eggs collected per day", "dash.chart.feed": "Feed consumed per day (kg)",

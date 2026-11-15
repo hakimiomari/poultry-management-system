@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import type { ActionState } from "@/lib/actions";
 import { useT } from "@/components/I18nProvider";
+import { pingServer, setServerOnline } from "@/lib/offline/connection";
 
 /** Destructive action behind a confirmation dialog. */
 export function ConfirmButton({ trigger, title, description, action, confirmLabel }: { trigger: ReactNode; title: string; description: string; action: () => Promise<ActionState | void>; confirmLabel?: string }) {
@@ -19,7 +20,12 @@ export function ConfirmButton({ trigger, title, description, action, confirmLabe
         {error && <div className="rounded-lg border border-destructive/30 bg-danger-soft px-3 py-2 text-sm text-destructive">{error}</div>}
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />}>{t("common.cancel")}</DialogClose>
-          <Button variant="destructive" disabled={pending} onClick={() => start(async () => { const r = await action(); if (r && "error" in r && r.error) setError(r.error); else { setOpen(false); router.refresh(); } })}>{confirmLabel ?? t("common.delete")}</Button>
+          <Button variant="destructive" disabled={pending} onClick={() => start(async () => {
+            let r: ActionState | void;
+            try { r = await action(); }
+            catch (e) { if (await pingServer()) throw e; setServerOnline(false); setError(t("offline.cannot")); return; } // deleting needs a connection
+            if (r && "error" in r && r.error) setError(r.error); else { setOpen(false); router.refresh(); }
+          })}>{confirmLabel ?? t("common.delete")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { checkServer } from "@/lib/offline/connection";
 
 /**
  * Keeps every open screen current: listens to /api/live and re-fetches the page's data when anyone saves a change.
@@ -15,6 +16,7 @@ export function LiveRefresh() {
     let opened = false;
 
     const refresh = () => {
+      window.dispatchEvent(new Event("pms:data-changed")); // <OfflineSync> re-saves the offline copies
       if (document.hidden) {
         stale = true;
         return;
@@ -29,6 +31,11 @@ export function LiveRefresh() {
       source.onopen = () => {
         if (opened) refresh();
         opened = true;
+        checkServer(); // back in touch: lets waiting offline entries go out straight away
+      };
+      // This stream drops the moment the server goes away, so it is the fastest sign of a lost connection.
+      source.onerror = () => {
+        checkServer();
       };
     };
     const onVisible = () => {

@@ -6,6 +6,8 @@ import { fmtJalali, todayStr } from "@/lib/format";
 import { UserMenu } from "@/components/UserMenu";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { LiveRefresh } from "@/components/LiveRefresh";
+import { OfflineSync, OfflineBanner, OutboxButton } from "@/components/offline";
+import { prisma } from "@/lib/db";
 import { getTheme } from "@/lib/locale";
 import { can } from "@/lib/enums";
 
@@ -45,6 +47,15 @@ export default async function AppLayout({
     { href: "/profile", label: t("nav.profile"), icon: "profile" },
     { href: "/daily-logs", label: t("nav.dailyLogs"), icon: "logs" },
   ];
+  // Pages kept on the phone for use with no connection: everything in this user's menu, plus each active flock.
+  const activeFlocks = await prisma.flock.findMany({
+    where: { status: "ACTIVE" },
+    select: { id: true },
+  });
+  const offlinePages = [
+    ...items.map((i) => i.href),
+    ...activeFlocks.map((f) => `/flocks/${f.id}`),
+  ];
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-20 h-14 border-b bg-card/90 backdrop-blur">
@@ -66,6 +77,7 @@ export default async function AppLayout({
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <OutboxButton userId={user.id} />
             <LanguageMenu />
             <UserMenu
               user={{ fullName: user.fullName }}
@@ -75,6 +87,7 @@ export default async function AppLayout({
           </div>
         </div>
       </header>
+      <OfflineBanner renderedAt={Date.now()} />
       <div className="flex min-w-0 flex-1">
         <SideNav items={items} logout={logoutAction} />
         <main className="w-full min-w-0 flex-1 px-4 py-6 pb-24 lg:px-8 lg:pb-8">
@@ -83,6 +96,7 @@ export default async function AppLayout({
       </div>
       <BottomNav items={items} moreLabel={t("nav.more")} />
       <LiveRefresh />
+      <OfflineSync userId={user.id} pages={offlinePages} />
     </div>
   );
 }
